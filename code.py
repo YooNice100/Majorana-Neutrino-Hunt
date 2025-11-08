@@ -1,0 +1,247 @@
+import h5py
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
+from scipy.optimize import minimize
+from scipy.signal import savgol_filter
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+from scipy.fft import fft, fftfreq
+from scipy.stats import skew, kurtosis
+
+# Function to compute tdrift, tdrift50, and tdrift10 points
+def compute_tdrift_points(waveform, tp0, step=0.1):
+    """
+    Compute tdrift (99.9%), tdrift50 (50%), and tdrift10 (10%) points 
+    from the rising portion of a waveform.
+
+    Parameters
+    ----------
+    waveform : np.ndarray
+        The full waveform signal.
+    estimated_tp0 : int
+        Estimated start index of the rising edge (tp0).
+    step : float, optional
+        Interpolation step size (default = 0.1 for finer resolution).
+
+    Returns
+    -------
+    dict
+        {
+            "new_timeindex_rise": np.ndarray,
+            "new_waveform_rise": np.ndarray,
+            "tdrift": int,
+            "tdrift50": int,
+            "tdrift10": int
+        }
+    """
+    # 1. Find waveform peak and slice the rising portion
+    peak_index = np.argmax(waveform)
+    waveform_rise = waveform[tp0:peak_index + 1]
+    timeindex_rise = np.arange(0, len(waveform_rise))
+
+    # 2. Interpolate rising portion
+    interp_func = interp1d(timeindex_rise, waveform_rise, kind='linear')
+    new_timeindex_rise = np.arange(0, len(timeindex_rise) - 1, step)
+    new_waveform_rise = interp_func(new_timeindex_rise)
+
+    # 3. Compute rise thresholds
+    rise_peak = np.max(new_waveform_rise)
+    tdrift = np.where(new_waveform_rise >= 0.999 * rise_peak)[0][0]
+    tdrift50 = np.where(new_waveform_rise >= 0.5 * rise_peak)[0][0]
+    tdrift10 = np.where(new_waveform_rise >= 0.1 * rise_peak)[0][0]
+
+    return tdrift, tdrift50, tdrift10
+
+# Double exponential decay model for fitting
+def exponential(t, a, tau1, b, tau2):
+    """
+    Double exponential decay model.
+    Args:
+        t (np.array): Time values.
+        a (float): Amplitude of the first exponential component.
+        tau1 (float): Decay constant of the first exponential component.
+        b (float): Amplitude of the second exponential component.
+        tau2 (float): Decay constant of the second exponential component.
+    Returns:
+        np.array: The evaluated double exponential decay at time t.
+    """
+    return a * np.exp(-t/tau1) + b * np.exp(-t/tau2)
+
+# Pole-Zero Correction Function
+def pole_zero_correct(waveform):
+    """
+    Args:
+        waveform (np.array): The raw ADC counts (time series data).
+    Returns:
+        np.array: The PZ-corrected waveform. Returns a copy of the original 
+                  if the fitting fails.
+    """
+    # 0. Identify the peak value
+    peak_value = np.max(waveform)
+    
+    # 1. Isolate the tail (starting at 98% of the peak)
+    t98_indices = np.where(waveform >= 0.98 * peak_value)[0]
+    
+    # Safety check: if the pulse doesn't clearly rise, return uncorrected
+    if t98_indices.size == 0 or len(waveform) < 105: # 105 samples for baseline check
+        return np.copy(waveform) 
+        
+    t98 = t98_indices[0]
+    
+    # Generate the time index necessary for the fit (starting at 0 for the fit function)
+    time_index = np.arange(0, len(waveform))
+    tail_time = np.arange(0, time_index[-1] - t98 + 1)
+    tail_values = waveform[t98:]
+    
+    # 2. Fit the parameters (with error handling)
+    try:
+        # Fit the decay model to the raw tail values
+        params, params_cov = curve_fit(exponential, tail_time, tail_values)
+    except RuntimeError:
+        # If the curve_fit fails to converge (e.g., due to noise or pile-up), 
+        # return a copy of the original waveform to prevent the pipeline from crashing.
+        return np.copy(waveform) 
+
+    # 3. Calculate the correction factor and apply it
+    f_decay = exponential(tail_time, *params)
+    
+    # Estimate the initial value of the tail (f_t0) from the first few samples near t98
+    f_t0 = np.mean(waveform[t98:t98+5])
+    
+    # Calculate the inverse correction factor (f_pz). 
+    # This factor, when multiplied by the tail, flattens the exponential decay.
+    f_pz = f_t0 / f_decay
+    
+    # Apply the correction
+    waveform_tail_corrected = tail_values * f_pz
+    
+    # 4. Create the final corrected waveform
+    waveform_pz = np.copy(waveform)
+    waveform_pz[t98:] = waveform_tail_corrected
+    
+    return waveform_pz
+
+# Function to calculate tail charge difference
+def calculate_tail_charge_diff(raw_waveform, daq_energy, peak_index):
+    """
+    Calculates the Energy-Normalized Late Charge Residual (tail_charge_diff).
+    
+    tail_charge_diff = (Area_Late - Area_Early) / DAQ_Energy
+    
+    Args:
+        raw_waveform (np.array): The raw ADC counts.
+        daq_energy (float): The raw energy proxy (DAQ Energy).
+        peak_index (int): The index of the waveform's maximum amplitude.
+
+    Returns:
+        float: The calculated tail_charge_diff parameter.
+    """
+    
+    # Step 1: Apply Pole-Zero Correction
+    pz_corrected_wf = pole_zero_correct(raw_waveform)
+
+    # Assuming 50 samples/µs (based on typical MJD/LEGEND settings, where 3800 samples is ~76 µs)
+    SAMPLES_PER_MICROSECOND = 50 
+
+    # Step 2: Define Time Windows (Indices relative to peak) ---
+    
+    # Early Tail Window (0.5 µs to 1.5 µs after peak)
+    T_START_EARLY_US = 0.5  
+    T_END_EARLY_US   = 1.5
+    
+    # Late Tail Window (2.0 µs to 3.0 µs after peak)
+    T_START_LATE_US  = 2.0
+    T_END_LATE_US    = 3.0 
+    
+    # Convert µs times to array indices
+    idx_start_early = peak_index + int(T_START_EARLY_US * SAMPLES_PER_MICROSECOND)
+    idx_end_early   = peak_index + int(T_END_EARLY_US * SAMPLES_PER_MICROSECOND)
+    
+    idx_start_late  = peak_index + int(T_START_LATE_US * SAMPLES_PER_MICROSECOND)
+    idx_end_late    = peak_index + int(T_END_LATE_US * SAMPLES_PER_MICROSECOND)
+    
+    # Basic bounds check
+    if idx_end_late >= len(pz_corrected_wf) or idx_start_early >= idx_end_early:
+        return 0.0
+
+    # Step 3: Calculate Integrated Charge (Area)
+    # Summing ADC counts is the integral (Area) over the indices.
+    charge_early = np.sum(pz_corrected_wf[idx_start_early:idx_end_early])
+    charge_late = np.sum(pz_corrected_wf[idx_start_late:idx_end_late])
+
+    # Step 4: Calculate Final Normalized Residual
+    charge_residual = charge_late - charge_early
+    
+    if daq_energy > 0:
+        lq_res = charge_residual / daq_energy
+    else:
+        lq_res = 0.0
+        
+    return lq_res
+
+#  Tail Flattening Ratio (TFR)
+def compute_tfr(wf_raw, wf_pz, peak_idx, tail_len=1000):
+    tail_raw = wf_raw[peak_idx:peak_idx + tail_len]
+    tail_pz = wf_pz[peak_idx:peak_idx + tail_len]
+    
+    tfr = np.std(tail_raw) / np.std(tail_pz)
+    return tfr
+
+def extract_avse(wf, E, dt=4, window_ns=100, sg_window=11, sg_poly=3):
+    """
+    Extract AvsE (Amplitude vs Energy) from a waveform.
+    
+    Steps:
+      1. Normalize waveform to [0, 1]
+      2. Smooth waveform using Savitzky-Golay filter
+      3. Compute current waveform using sliding window derivative
+      4. Extract peak current amplitude (A)
+      5. Compute total energy (E) as area under original waveform
+      6. Return AvsE = A / E
+
+    Parameters:
+        wf : 1D np.array
+            Input waveform (ADC values)
+        dt : float
+            Sampling period in ns (default 10 ns)
+        window_ns : float
+            Window size for slope (default 100 ns)
+        sg_window : int
+            Window length for Savitzky-Golay filter (must be odd)
+        sg_poly : int
+            Polynomial order for Savitzky-Golay filter
+
+    Returns:
+        AvsE : float
+            Amplitude vs Energy parameter (dimensionless)
+        A : float
+            Peak current amplitude (normalized units/ns)
+        E : float
+            Total energy (ADC × ns)
+        slopes : np.array
+            Current waveform (slope at each time index)
+        wnorm_smooth : np.array
+            Smoothed normalized waveform
+    """
+    # Step 1: Normalize waveform to [0, 1]
+    wmin, wmax = np.min(wf), np.max(wf)
+    w_norm = (wf - wmin) / (wmax - wmin)
+
+    # Step 2: Smooth waveform using Savitzky-Golay filter
+    wnorm_smooth = savgol_filter(w_norm, sg_window, sg_poly)
+
+    # Step 3: Compute current waveform using sliding window derivative
+    N = int(window_ns / dt)  # number of samples in the window
+    slopes = np.zeros(len(wnorm_smooth) - N)
+    for i in range(len(slopes)):
+        slopes[i] = (wnorm_smooth[i + N] - wnorm_smooth[i]) / (N * dt)
+
+    # Step 4: Peak current amplitude (A)
+    A = np.max(slopes)
+
+    # Step 6: Compute AvsE
+    AvsE = A / E
+
+    return AvsE, A, E, slopes, wnorm_smooth
