@@ -245,3 +245,61 @@ def extract_avse(wf, E, dt=4, window_ns=100, sg_window=11, sg_poly=3):
     AvsE = A / E
 
     return AvsE, A, E, slopes, wnorm_smooth
+
+def gradient_trace(wf):
+    """
+    First difference (slope) as a simple current proxy.
+    Returns the slope series and a few summary stats.
+    """
+    g = np.gradient(wf)
+    stats = {
+        "max_grad": np.max(g),
+        "rms_grad": np.sqrt(np.mean(g**2)),
+        "grad_spread": np.percentile(np.abs(g), 95) - np.percentile(np.abs(g), 5)
+    }
+    return g, stats
+
+def compare_transforms(wf_sse, wf_mse, time_index, smooth_sigma=1.0):
+    # ---------- 2) Gradient (slope) ----------
+    g_sse, stats_sse = gradient_trace(true_waveform)
+    g_mse, stats_mse = gradient_trace(false_waveform)
+
+    wf_norm_sse = (g_sse - np.min(g_sse)) / (np.max(g_sse) - np.min(g_sse))
+    wf_norm_mse = (g_mse - np.min(g_mse)) / (np.max(g_mse) - np.min(g_mse))
+
+
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15, 10)) # Adjust figsize as needed
+    axes[0].plot(time_index, wf_norm_sse, label='SSE-like Waveform', color='orange')    
+    axes[0].set_title("Gradient (slope) vs time")
+    axes[0].set_xlabel("Sample")
+    axes[0].set_ylabel("Slope (ΔADC / sample)")
+    axes[0].legend()
+
+    axes[1].plot(time_index, wf_norm_mse, label='MSE-like Waveform', color='blue')
+    axes[1].set_title("Gradient (slope) vs time")
+    axes[1].set_xlabel("Sample")
+    axes[1].set_ylabel("Slope (ΔADC / sample)")
+    axes[1].legend()
+    plt.show()
+
+# compare_transforms(true_waveform, false_waveform, time_index)
+
+def compare_transforms(wf_sse, wf_mse, time_index, smooth_sigma=1.0):
+    # ---------- 2) Gradient (slope) ----------
+    g_sse, stats_sse = gradient_trace(true_waveform)
+    g_mse, stats_mse = gradient_trace(false_waveform)
+
+    wf_norm_sse = (g_sse - np.min(g_sse)) / (np.max(g_sse) - np.min(g_sse))
+    wf_norm_mse = (g_mse - np.min(g_mse)) / (np.max(g_mse) - np.min(g_mse))
+
+    plt.figure(figsize=(20, 15))
+    plt.plot(time_index, wf_norm_sse, label='SSE-like Waveform', color='orange')
+    plt.plot(time_index, wf_norm_mse, label='MSE-like Waveform', color='blue', alpha = 0.3)  
+    plt.title("Gradient (slope) vs time")
+    plt.xlabel("Sample")
+    plt.ylabel("Slope (ΔADC / sample)")
+    plt.legend()
+    plt.grid(alpha=0.3)
+    plt.show()
+
+# compare_transforms(true_waveform, false_waveform, time_index)
