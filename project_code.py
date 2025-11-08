@@ -5,7 +5,6 @@ from scipy.interpolate import interp1d
 from scipy.signal import savgol_filter
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
-from scipy.stats import skew, kurtosis
 
 # compute tdrift, tdrift50, and tdrift10 points
 def calculate_drift_times(waveform, tp0, step=0.1):
