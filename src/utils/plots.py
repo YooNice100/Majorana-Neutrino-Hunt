@@ -1,25 +1,27 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# ------------------------------------------------------------
 # Import feature functions
-from .parameters.tail_features import compute_LQ80, compute_ND80
-from .parameters.time_domain import (
+# ------------------------------------------------------------
+from ..parameters.tail_features import compute_LQ80, compute_ND80
+from ..parameters.time_domain import (
     compute_peak_width_25_75,
     compute_energy_duration,
     compute_drift_times,
 )
-from .parameters.frequency_domain import (
+from ..parameters.frequency_domain import (
     compute_frequency_spectrum,
     compute_peak_frequency,
     compute_spectral_centroid,
 )
-from .parameters.misc import compute_PPR
-from .transforms import pole_zero_correction
-from .utils import estimate_baseline
+from ..parameters.misc import compute_PPR
+
+from ..utils.transforms import pole_zero_correction, estimate_baseline
 
 
 # ------------------------------------------------------------
-# Helper: save or show
+# Helper for saving
 # ------------------------------------------------------------
 def _finalize(fig, save_path):
     if save_path:
@@ -28,7 +30,7 @@ def _finalize(fig, save_path):
 
 
 # ------------------------------------------------------------
-# 1. LQ80 — waveform-level plot
+# LQ80 waveform plot
 # ------------------------------------------------------------
 def plot_LQ80_waveform(waveform, save_path=None):
     t = np.arange(len(waveform))
@@ -40,14 +42,12 @@ def plot_LQ80_waveform(waveform, save_path=None):
     i80 = np.where(waveform >= target80)[0][0]
 
     fig, ax = plt.subplots(figsize=(10, 4))
-    ax.plot(t, waveform, label="Original", color="blue")
-    ax.plot(t, waveform_pz, label="PZ-corrected", color="orange")
-    ax.axhline(target80, linestyle="--", color="red", label="80% level")
+    ax.plot(t, waveform, label="Original")
+    ax.plot(t, waveform_pz, label="PZ-corrected")
+    ax.axhline(target80, linestyle="--", color="red", label="80 percent level")
     ax.axvline(i80, linestyle="--", color="black", label="i80")
 
-    ax.fill_between(
-        t[i80:], waveform[i80:], waveform_pz[i80:], color="purple", alpha=0.3
-    )
+    ax.fill_between(t[i80:], waveform[i80:], waveform_pz[i80:], color="purple", alpha=0.3)
 
     ax.set_title("LQ80 Visualization")
     ax.set_xlabel("Sample")
@@ -57,7 +57,7 @@ def plot_LQ80_waveform(waveform, save_path=None):
 
 
 # ------------------------------------------------------------
-# 2. ND80 — waveform-level plot
+# ND80 waveform plot
 # ------------------------------------------------------------
 def plot_ND80_waveform(waveform, save_path=None):
     t = np.arange(len(waveform))
@@ -68,8 +68,8 @@ def plot_ND80_waveform(waveform, save_path=None):
     level80 = baseline + 0.8 * (peak - baseline)
 
     fig, ax = plt.subplots(figsize=(10, 4))
-    ax.plot(t, waveform, color="blue", label="Waveform")
-    ax.axhline(level80, linestyle="--", color="red", label="80% level")
+    ax.plot(t, waveform, label="Waveform")
+    ax.axhline(level80, linestyle="--", color="red", label="80 percent level")
 
     if idx_notch is not None:
         ax.scatter([idx_notch], [waveform[idx_notch]], color="black", label="Max notch")
@@ -82,7 +82,7 @@ def plot_ND80_waveform(waveform, save_path=None):
 
 
 # ------------------------------------------------------------
-# 3. Peak width 25–75%
+# 25–75 percent peak width plot
 # ------------------------------------------------------------
 def plot_peak_width_waveform(waveform, save_path=None):
     t = np.arange(len(waveform))
@@ -91,12 +91,12 @@ def plot_peak_width_waveform(waveform, save_path=None):
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.plot(t, waveform, label="Waveform")
 
-    if left_idx:
-        ax.axvline(left_idx, linestyle="--", color="orange", label="25% crossing")
-    if right_idx:
-        ax.axvline(right_idx, linestyle="--", color="green", label="75% crossing")
+    if left_idx is not None:
+        ax.axvline(left_idx, linestyle="--", color="orange", label="25 percent")
+    if right_idx is not None:
+        ax.axvline(right_idx, linestyle="--", color="green", label="75 percent")
 
-    ax.set_title(f"25–75% Width = {width:.2f}")
+    ax.set_title(f"25–75 percent Width = {width:.2f}")
     ax.set_xlabel("Sample")
     ax.set_ylabel("ADC")
     ax.legend()
@@ -104,7 +104,7 @@ def plot_peak_width_waveform(waveform, save_path=None):
 
 
 # ------------------------------------------------------------
-# 4. Drift times (10%, 50%, 99.9%)
+# Drift times (10 percent, 50 percent, 99.9 percent)
 # ------------------------------------------------------------
 def plot_drift_times_waveform(waveform, tp0, save_path=None):
     t = np.arange(len(waveform))
@@ -113,10 +113,10 @@ def plot_drift_times_waveform(waveform, tp0, save_path=None):
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.plot(t, waveform, label="Waveform")
 
-    ax.axvline(tp0, color="grey", linestyle="--", label="tp0")
-    ax.axvline(t10, color="blue", linestyle="--", label="10%")
-    ax.axvline(t50, color="green", linestyle="--", label="50%")
-    ax.axvline(t999, color="red", linestyle="--", label="99.9%")
+    ax.axvline(tp0, linestyle="--", color="gray", label="tp0")
+    ax.axvline(t10, linestyle="--", color="blue", label="10 percent")
+    ax.axvline(t50, linestyle="--", color="green", label="50 percent")
+    ax.axvline(t999, linestyle="--", color="red", label="99.9 percent")
 
     ax.set_title("Drift-Time Features")
     ax.set_xlabel("Sample")
@@ -126,13 +126,13 @@ def plot_drift_times_waveform(waveform, tp0, save_path=None):
 
 
 # ------------------------------------------------------------
-# 5. FFT — linear scale
+# FFT – linear
 # ------------------------------------------------------------
 def plot_fft_linear(waveform, save_path=None):
     xf, amp = compute_frequency_spectrum(waveform)
 
     fig, ax = plt.subplots(figsize=(10, 4))
-    ax.plot(xf, amp, color="purple")
+    ax.plot(xf, amp)
     ax.set_title("FFT Amplitude Spectrum")
     ax.set_xlabel("Frequency")
     ax.set_ylabel("Amplitude")
@@ -140,26 +140,26 @@ def plot_fft_linear(waveform, save_path=None):
 
 
 # ------------------------------------------------------------
-# 6. FFT — log-log scale
+# FFT – log scale
 # ------------------------------------------------------------
 def plot_fft_log(waveform, save_path=None):
     xf, amp = compute_frequency_spectrum(waveform)
 
     fig, ax = plt.subplots(figsize=(10, 4))
-    ax.loglog(xf[1:], amp[1:], color="purple")  # skip 0 Hz for log
-    ax.set_title("FFT Spectrum (Log-Log)")
+    ax.loglog(xf[1:], amp[1:])  # skip 0 Hz
+    ax.set_title("FFT Spectrum (Log–Log)")
     ax.set_xlabel("Frequency")
     ax.set_ylabel("Amplitude")
     return _finalize(fig, save_path)
 
 
 # ------------------------------------------------------------
-# 7. Distribution plots (generic helper)
+# Simple histogram helper
 # ------------------------------------------------------------
 def _hist_plot(data_sse, data_mse, title, xlabel, save_path=None):
     fig, ax = plt.subplots(figsize=(9, 4))
-    ax.hist(data_sse, bins=60, color="blue", alpha=0.6, label="SSE")
-    ax.hist(data_mse, bins=60, color="red", alpha=0.6, label="MSE")
+    ax.hist(data_sse, bins=60, alpha=0.6, label="SSE")
+    ax.hist(data_mse, bins=60, alpha=0.6, label="MSE")
     ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_ylabel("Count")
@@ -169,35 +169,35 @@ def _hist_plot(data_sse, data_mse, title, xlabel, save_path=None):
 
 
 # ------------------------------------------------------------
-# 8. Histograms for all features
+# Histogram wrappers for each feature
 # ------------------------------------------------------------
-def plot_hist_LQ80(LQ80_sse, LQ80_mse, save_path=None):
-    return _hist_plot(LQ80_sse, LQ80_mse, "LQ80 Distribution", "LQ80", save_path)
+def plot_hist_LQ80(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "LQ80 Distribution", "LQ80", save_path)
 
 
-def plot_hist_ND80(ND80_sse, ND80_mse, save_path=None):
-    return _hist_plot(ND80_sse, ND80_mse, "ND80 Distribution", "ND80 (normalized)", save_path)
+def plot_hist_ND80(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "ND80 Distribution", "ND80", save_path)
 
 
-def plot_hist_peak_width(width_sse, width_mse, save_path=None):
-    return _hist_plot(width_sse, width_mse, "Peak Width 25–75%", "Width (samples)", save_path)
+def plot_hist_peak_width(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Peak Width 25–75 percent", "Width", save_path)
 
 
-def plot_hist_energy_duration(dur_sse, dur_mse, save_path=None):
-    return _hist_plot(dur_sse, dur_mse, "Energy Duration 90%", "Duration (samples)", save_path)
+def plot_hist_energy_duration(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Energy Duration", "Samples", save_path)
 
 
-def plot_hist_drift_times(drift_sse, drift_mse, save_path=None):
-    return _hist_plot(drift_sse, drift_mse, "Drift-Time Distribution", "Drift-Time Index", save_path)
+def plot_hist_drift_times(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Drift-Time Distribution", "Drift-Time", save_path)
 
 
-def plot_hist_spectral_centroid(sc_sse, sc_mse, save_path=None):
-    return _hist_plot(sc_sse, sc_mse, "Spectral Centroid", "Centroid (freq units)", save_path)
+def plot_hist_spectral_centroid(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Spectral Centroid", "Freq Units", save_path)
 
 
-def plot_hist_peak_frequency(pf_sse, pf_mse, save_path=None):
-    return _hist_plot(pf_sse, pf_mse, "Peak Frequency", "Frequency", save_path)
+def plot_hist_peak_frequency(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Peak Frequency", "Frequency", save_path)
 
 
-def plot_hist_PPR(ppr_sse, ppr_mse, save_path=None):
-    return _hist_plot(ppr_sse, ppr_mse, "Peak Plateau Ratio (PPR)", "PPR", save_path)
+def plot_hist_PPR(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Peak Plateau Ratio (PPR)", "PPR", save_path)

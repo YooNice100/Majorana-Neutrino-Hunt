@@ -2,6 +2,17 @@ import numpy as np
 from scipy.optimize import curve_fit
 from scipy.fft import rfft, rfftfreq
 
+
+
+def estimate_baseline(y, n_samples=200):
+    """
+    Returns baseline (mean, std) from first n_samples.
+    """
+    y0 = np.asarray(y, dtype=float)[:n_samples]
+    return float(np.mean(y0)), float(np.std(y0))
+
+
+
 # Double exponential decay model for fitting
 def exponential(t, a, tau1, b, tau2):
     """

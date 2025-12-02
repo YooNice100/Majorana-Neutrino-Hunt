@@ -1,6 +1,8 @@
-# Ignore HDF5 files (large data files)
+# Ignore data directory
+data/
 *.hdf5
+*.h5
 
-# Ignore Python cache directories
-__pycache__/
-
+# If you ever save generated images locally
+graphs/*.png
+graphs/*.jpg

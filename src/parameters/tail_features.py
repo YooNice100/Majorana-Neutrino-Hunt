@@ -1,13 +1,6 @@
 import numpy as np
-from .transforms import pole_zero_correction
+from ..utils.transforms import pole_zero_correction, estimate_baseline
 
-
-def estimate_baseline(y, n_samples=200):
-    """
-    Returns baseline (mean, std) from first n_samples.
-    """
-    y0 = np.asarray(y, dtype=float)[:n_samples]
-    return float(np.mean(y0)), float(np.std(y0))
 
 
 
