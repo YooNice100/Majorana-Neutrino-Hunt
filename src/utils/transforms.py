@@ -3,85 +3,138 @@ from scipy.optimize import curve_fit
 from scipy.fft import rfft, rfftfreq
 
 
-
+# ------------------------------------------------------------
+# Baseline estimation
+# ------------------------------------------------------------
 def estimate_baseline(y, n_samples=200):
     """
-    Returns baseline (mean, std) from first n_samples.
+    Returns baseline (mean, std) from the first n_samples.
     """
     y0 = np.asarray(y, dtype=float)[:n_samples]
     return float(np.mean(y0)), float(np.std(y0))
 
 
 
-# Double exponential decay model for fitting
+# ------------------------------------------------------------
+# Double exponential tail model
+# ------------------------------------------------------------
 def exponential(t, a, tau1, b, tau2):
     """
-    Double exponential decay model.
+    Double exponential decay model of the form:
+        a * exp(-t/tau1) + b * exp(-t/tau2)
 
-    Returns:
-        np.array: The evaluated double exponential decay at time t.
+    This models the long falling edge of HPGe waveforms.
     """
-    return a * np.exp(-t/tau1) + b * np.exp(-t/tau2)
+    return a * np.exp(-t / tau1) + b * np.exp(-t / tau2)
 
 
-# Applies pole-zero correction to a waveform.
-def pole_zero_correction(waveform):
+
+# ------------------------------------------------------------
+# Pole–Zero Correction (OPTIONAL — disabled by default)
+# ------------------------------------------------------------
+def pole_zero_correction(waveform, use_pz=False):
     """
-    Args:
-        raw waveform (np.array)
-    Returns:
-        waveform_pz (np.array): The PZ-corrected full waveform.
-        waveform_tail_corrected (np.array): The PZ-corrected tail portion of the waveform.
+    Applies pole–zero correction to the waveform tail.
+
+    Parameters
+    ----------
+    waveform : np.ndarray
+        Raw waveform.
+    use_pz : bool
+        If False, returns the waveform unchanged.
+        If True, attempts exponential fitting and tail correction.
+
+    Returns
+    -------
+    waveform_pz : np.ndarray
+        Corrected waveform (or raw waveform if disabled/fitting failed).
+    corrected_tail : np.ndarray
+        The corrected tail region (or raw tail if not corrected).
     """
-    # Identify the peak value
-    peak_value = np.max(waveform)
-    
-    # Isolate the tail (starting at 98% of the peak)
-    t98 = np.where(waveform >= 0.98 * peak_value)[0][0]
-    
-    # Generate the time index necessary for the fit (starting at 0 for the fit function)
-    time_index = np.arange(0, len(waveform))
-    tail_time = np.arange(0, time_index[-1] - t98 + 1)
-    tail_values = waveform[t98:]
 
-    # Fit the decay model to the raw tail values
-    params, params_cov = curve_fit(exponential, tail_time, tail_values)
+    # --------------------------------------------------------
+    # If disabled → return original waveform immediately
+    # --------------------------------------------------------
+    y = np.asarray(waveform, dtype=float)
+    if not use_pz:
+        return y, y
 
-    # Calculate the correction factor and apply it
-    f_decay = exponential(tail_time, *params)
-    
-    # Estimate the initial value of the tail (f_t0) from the first few samples near t98
-    f_t0 = np.mean(waveform[t98:t98+5])
-    
-    # Calculate the inverse correction factor (f_pz). 
-    # This factor, when multiplied by the tail, flattens the exponential decay.
-    f_pz = f_t0 / f_decay
-    
-    # Apply the correction
-    waveform_tail_corrected = tail_values * f_pz
-    
-    # Create the final corrected waveform
-    waveform_pz = np.copy(waveform)
-    waveform_pz[t98:] = waveform_tail_corrected
-    
-    return waveform_pz, waveform_tail_corrected
+    # --------------------------------------------------------
+    # Identify 98 percent rise point (start of decay)
+    # --------------------------------------------------------
+    peak_value = np.max(y)
+    t98_idx = np.where(y >= 0.98 * peak_value)[0]
+    if len(t98_idx) == 0:
+        return y, y
+    t98 = int(t98_idx[0])
+
+    # Tail region
+    tail_values = y[t98:]
+    tail_time = np.arange(len(tail_values))
+
+    # --------------------------------------------------------
+    # Fit a double exponential tail
+    # Use tighter bounds to avoid overflow and unrealistic fits
+    # --------------------------------------------------------
+    try:
+        params, _ = curve_fit(
+            exponential,
+            tail_time,
+            tail_values,
+            p0=[peak_value, 300.0, peak_value * 0.1, 1500.0],  # initial guesses
+            bounds=(
+                [0, 10, 0, 10],          # lower bounds
+                [peak_value * 2, 5000, peak_value * 2, 5000]  # upper bounds
+            ),
+            maxfev=4000
+        )
+
+        # Decay model
+        model_decay = exponential(tail_time, *params)
+
+        # Reference point for normalization
+        f_t0 = np.mean(tail_values[:5])
+        f_pz = f_t0 / model_decay
+
+        corrected_tail = tail_values * f_pz
+
+        waveform_pz = y.copy()
+        waveform_pz[t98:] = corrected_tail
+
+        return waveform_pz, corrected_tail
+
+    except Exception:
+        # If fitting fails, return original
+        return y, y
 
 
 
+# ------------------------------------------------------------
+# Frequency Spectrum
+# ------------------------------------------------------------
 def compute_frequency_spectrum(waveform, sample_spacing=1.0):
     """
-    Computes the one-sided frequency spectrum of a real waveform.
+    Computes one-sided FFT amplitude spectrum of the waveform.
 
-    Parameters:
-        waveform (np.ndarray): 1D array of samples
-        sample_spacing (float): time between samples
+    Parameters
+    ----------
+    waveform : array-like
+        The signal to transform.
+    sample_spacing : float
+        Time step between samples.
 
-    Returns:
-        xf (np.ndarray): frequency values
-        amplitude (np.ndarray): magnitude of spectrum
+    Returns
+    -------
+    xf : np.ndarray
+        Frequencies.
+    amplitude : np.ndarray
+        Real amplitude spectrum.
     """
-    N = len(waveform)
-    yf = rfft(waveform)
+    wf = np.asarray(waveform, dtype=float)
+    N = len(wf)
+
+    yf = rfft(wf)
     xf = rfftfreq(N, d=sample_spacing)
-    amplitude = np.abs(yf) * 2 / N
+
+    amplitude = np.abs(yf) * 2.0 / N
     return xf, amplitude

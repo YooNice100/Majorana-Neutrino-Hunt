@@ -118,49 +118,45 @@ def estimate_tp0_threshold(waveform, threshold=30):
     idxs = np.where(y > (baseline + threshold))[0]
     return int(idxs[0]) if len(idxs) > 0 else None
 
-
-
 def compute_drift_times(waveform, tp0, step=0.1):
     """
     Computes drift-time parameters by interpolating the rising edge.
-
-    Returns the indices where the rising waveform reaches:
-        - 10 percent of peak
-        - 50 percent of peak
-        - 99.9 percent of peak (tdrift)
-
-    Parameters
-    ----------
-    waveform : array-like
-        Full raw waveform.
-    tp0 : int
-        Estimated rising edge start index.
-    step : float
-        Interpolation step size (default 0.1).
-
-    Returns
-    -------
-    tdrift_999 : int
-        Index where waveform reaches 99.9 percent of peak.
-    tdrift_50 : int
-        Index where waveform reaches 50 percent of peak.
-    tdrift_10 : int
-        Index where waveform reaches 10 percent of peak.
+    Returns NaN values if waveform is not suitable.
     """
     y = np.asarray(waveform, dtype=float)
     peak_idx = int(np.argmax(y))
 
+    # invalid tp0
+    if tp0 is None or tp0 >= peak_idx:
+        return np.nan, np.nan, np.nan
+
     rise = y[tp0 : peak_idx + 1]
+    if len(rise) < 3:
+        return np.nan, np.nan, np.nan
+
     t = np.arange(len(rise))
 
-    interp = interp1d(t, rise, kind="linear")
-    t_new = np.arange(0, len(t) - 1, step)
-    y_new = interp(t_new)
+    # safeguard interpolation
+    try:
+        interp = interp1d(t, rise, kind="linear")
+        t_new = np.arange(0, len(t) - 1, step)
+        if len(t_new) == 0:
+            return np.nan, np.nan, np.nan
+
+        y_new = interp(t_new)
+        if len(y_new) == 0:
+            return np.nan, np.nan, np.nan
+    except Exception:
+        return np.nan, np.nan, np.nan
 
     peak_val = np.max(y_new)
 
-    tdrift_999 = int(np.where(y_new >= 0.999 * peak_val)[0][0])
-    tdrift_50  = int(np.where(y_new >= 0.5   * peak_val)[0][0])
-    tdrift_10  = int(np.where(y_new >= 0.1   * peak_val)[0][0])
+    # thresholds
+    try:
+        tdrift_999 = np.where(y_new >= 0.999 * peak_val)[0][0]
+        tdrift_50  = np.where(y_new >= 0.5   * peak_val)[0][0]
+        tdrift_10  = np.where(y_new >= 0.1   * peak_val)[0][0]
+    except Exception:
+        return np.nan, np.nan, np.nan
 
     return tdrift_999, tdrift_50, tdrift_10
