@@ -201,3 +201,6 @@ def plot_hist_peak_frequency(sse, mse, save_path=None):
 
 def plot_hist_PPR(sse, mse, save_path=None):
     return _hist_plot(sse, mse, "Peak Plateau Ratio (PPR)", "PPR", save_path)
+
+def plot_hist_avse(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "AvsE Distribution", "AvsE", save_path)

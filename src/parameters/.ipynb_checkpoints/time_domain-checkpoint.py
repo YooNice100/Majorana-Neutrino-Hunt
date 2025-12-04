@@ -160,29 +160,3 @@ def compute_drift_times(waveform, tp0, step=0.1):
         return np.nan, np.nan, np.nan
 
     return tdrift_999, tdrift_50, tdrift_10
-
-
-# ------------------------------------------------------------
-# 4. AvsE 
-# ------------------------------------------------------------
-
-def compute_avse(raw_waveform, energy_label, n_baseline=50):
-    N = raw_waveform.shape[0]
-    AvsE = np.full(N, np.nan, float)
-    A    = np.full(N, np.nan, float)
-
-    for i in range(N):
-        w = raw_waveform[i].astype(float)
-        E = float(energy_label[i])
-        b = np.mean(w[:n_baseline])
-        w0 = w - b
-
-        cur = np.diff(w0)  # per-sample slope
-        Ai = np.max(cur) if cur.size else np.nan
-
-        A[i] = Ai
-        AvsE[i] = (Ai / E) if E > 0 else np.nan
-
-    return AvsE, A
-
-

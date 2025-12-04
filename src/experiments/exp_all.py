@@ -15,6 +15,7 @@ from src.utils.plots import (
     plot_hist_drift_times,
     plot_hist_peak_frequency,
     plot_hist_spectral_centroid,
+    plot_hist_avse
 )
 
 # Feature functions
@@ -24,6 +25,7 @@ from src.parameters.time_domain import (
     compute_energy_duration,
     estimate_tp0_threshold,
     compute_drift_times,
+    compute_avse
 )
 from src.parameters.frequency_domain import (
     compute_peak_frequency,
@@ -119,6 +121,16 @@ def ttest(name, sse_vals, mse_vals):
     t, p = ttest_ind(xs, xm, equal_var=False)
     print(f"{name}: t = {t:.2f}, p = {p:.3e}")
 
+# --- AvsE (vectorized) ---
+avse, amp = compute_avse(data["raw_waveform"], data["energy_label"])  # returns (N,), (N,)
+
+# Clean NaNs
+def _clean(x):
+    x = np.asarray(x)
+    return x[np.isfinite(x)]
+
+avse_sse = _clean(avse[strict_sse])
+avse_mse = _clean(avse[strict_mse])
 
 # -------------------------------------------------
 # Summary
@@ -132,6 +144,7 @@ ttest("Energy Duration", energy_dur[strict_sse], energy_dur[strict_mse])
 ttest("Drift Time (50 percent)", drift_50[strict_sse], drift_50[strict_mse])
 ttest("Peak Frequency", peak_freq[strict_sse], peak_freq[strict_mse])
 ttest("Spectral Centroid", spec_centroid[strict_sse], spec_centroid[strict_mse])
+ttest("AvsE", avse[strict_sse], avse[strict_mse])
 
 
 # -------------------------------------------------
@@ -144,6 +157,8 @@ plot_hist_energy_duration(energy_dur[strict_sse], energy_dur[strict_mse], f"{OUT
 plot_hist_drift_times(drift_50[strict_sse], drift_50[strict_mse], f"{OUT_DIR}/drift_times_hist.png")
 plot_hist_peak_frequency(peak_freq[strict_sse], peak_freq[strict_mse], f"{OUT_DIR}/peak_freq_hist.png")
 plot_hist_spectral_centroid(spec_centroid[strict_sse], spec_centroid[strict_mse], f"{OUT_DIR}/spectral_centroid_hist.png")
+plot_hist_avse(avse[strict_sse], avse[strict_mse], f"{OUT_DIR}/avse_hist.png")
+
 
 print("\nSaved ALL plots to graphs/ folder.")
 print("Done.\n")

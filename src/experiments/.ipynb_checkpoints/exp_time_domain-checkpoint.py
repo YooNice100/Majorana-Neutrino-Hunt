@@ -1,22 +1,18 @@
 import numpy as np
 import os
 from scipy.stats import ttest_ind
-from scipy.stats import mannwhitneyu
-from sklearn.metrics import roc_auc_score
 
 from src.utils.io import load_hdf5
 from src.utils.plots import (
     plot_hist_peak_width,
     plot_hist_energy_duration,
     plot_hist_drift_times,
-    plot_hist_avse,
 )
 from src.parameters.time_domain import (
     compute_peak_width_25_75,
     compute_energy_duration,
     estimate_tp0_threshold,
     compute_drift_times,
-    compute_avse,
 )
 
 
@@ -126,53 +122,3 @@ plot_hist_energy_duration(ed_sse, ed_mse, save_path=f"{OUT_DIR}/energy_duration_
 plot_hist_drift_times(dt_sse, dt_mse, save_path=f"{OUT_DIR}/drift_50_hist.png")
 
 print("\nSaved all time-domain plots to graphs/.\n")
-
-# --- AvsE ---
-
-def _strict_sse_mse_masks(d):
-    low  = d["psd_label_low_avse"].astype(bool)
-    high = d["psd_label_high_avse"].astype(bool)
-    dcr  = d["psd_label_dcr"].astype(bool)
-    lq   = d["psd_label_lq"].astype(bool)
-    sse = low & (~high) & dcr & lq
-    mse = (~low) & high & (~dcr) & (~lq)
-    return sse, mse
-
-def run_avse_experiment(data_path="data/MJD_Train_2.hdf5", out_dir="graphs"):
-    os.makedirs(out_dir, exist_ok=True)
-    print(f"Loading: {data_path}")
-    d = load_hdf5(data_path)
-
-    W = d["raw_waveform"]
-    E = d["energy_label"]
-
-    # compute AvsE using your implementation in parameters/time_domain.py
-    avse, _ = compute_avse(W, E)
-
-    # strict masks
-    sse_mask, mse_mask = _strict_sse_mse_masks(d)
-
-    # split
-    sse_vals = avse[sse_mask]
-    mse_vals = avse[mse_mask]
-
-    # plot
-    save_path = os.path.join(out_dir, "avse_hist.png")
-    plot_hist_avse(sse_vals, mse_vals, save_path=save_path)
-    print(f"Saved: {save_path}")
-
-    # quick stats (Mann–Whitney + AUC with SSE=1, MSE=0)
-    sse_vals = sse_vals[np.isfinite(sse_vals)]
-    mse_vals = mse_vals[np.isfinite(mse_vals)]
-    if len(sse_vals) and len(mse_vals):
-        U, p = mannwhitneyu(sse_vals, mse_vals, alternative="two-sided")
-        y = np.concatenate([np.ones_like(sse_vals), np.zeros_like(mse_vals)])
-        f = np.concatenate([sse_vals, mse_vals])
-        try:
-            auc = roc_auc_score(y, f)
-        except Exception:
-            auc = np.nan
-        print(f"AvsE: Mann–Whitney U={U:.3g}, p={p:.3e}, AUC={auc if np.isfinite(auc) else np.nan:.3f}")
-    else:
-        print("AvsE: insufficient finite values for statistics.")
-
