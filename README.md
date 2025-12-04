@@ -30,7 +30,7 @@ We implement a pipeline to load raw waveforms, apply necessary masks (SSE vs. MS
 * **Peak Width:** Width of the pulse between 25% and 75% height.
 * **Energy Duration:** Window duration containing significant energy.
 * **Drift Time:** Time from threshold trigger (tp0) to 50% max height.
-* **A vs E:** Comparison of max current Amplitude vs. Energy.
+* **AvsE:** Comparison of max current Amplitude vs. Energy.
 
 **Frequency Domain:**
 * **Peak Frequency:** The frequency with the highest magnitude.
