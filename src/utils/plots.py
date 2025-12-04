@@ -204,3 +204,6 @@ def plot_hist_PPR(sse, mse, save_path=None):
 
 def plot_hist_avse(sse, mse, save_path=None):
     return _hist_plot(sse, mse, "AvsE Distribution", "AvsE", save_path)
+
+def plot_hist_hfer(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "HFER (Fourier sharpness)", "HFER", save_path)
