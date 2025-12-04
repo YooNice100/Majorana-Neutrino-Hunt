@@ -1,46 +1,97 @@
 # Majorana Neutrino Hunt — Quarter 1 Checkpoint
 
 ## Overview
-This repository contains the code for our DSC 180A Quarter 1 Capstone Project. We are analyzing digitized high-purity germanium (HPGe) detector waveforms from the [Majorana Demonstrator Data Release](https://zenodo.org/records/8257027).
+This repository contains the code for our DSC 180A Quarter 1 Capstone Project at UCSD. We are analyzing digitized high-purity germanium (HPGe) detector waveforms from the [Majorana Demonstrator Data Release](https://zenodo.org/records/8257027).
 
-The primary goal is to identify and engineer new waveform parameters that can effectively separate **single-site events (SSE)** from **multi-site events (MSE)**.
+The primary goal is to identify and engineer new waveform parameters that can effectively separate **single-site events (SSE)** from **multi-site events (MSE)**. This project implements a modular pipeline to extract features in both the time and frequency domains.
+
+---
+
+## Project Structure
+The project is organized into modular source code to ensure reproducibility:
+
+* `data/`: Stores the HDF5 datasets (ignored by Git).
+* `graphs/`: Output directory for feature histograms and plots.
+* `src/`: Source code modules.
+    * `experiments/`: Main execution scripts (e.g., `exp_all.py`).
+    * `parameters/`: Feature extraction logic (Time & Frequency domain).
+    * `utils/`: Helper functions for I/O, stats, and plotting.
+* `Dockerfile`: Instructions for building the project container.
+* `requirements.txt`: List of Python dependencies and versions.
+
+---
+
+## Methodology & Features
+We implement a pipeline to load raw waveforms, apply necessary masks (SSE vs. MSE), and compute the following features:
+
+**Time Domain:**
+* **LQ80:** A shape parameter requiring pole-zero correction.
+* **ND80:** Normalized difference at 80% rise time.
+* **Peak Width:** Width of the pulse between 25% and 75% height.
+* **Energy Duration:** Window duration containing significant energy.
+* **Drift Time:** Time from threshold trigger (tp0) to 50% max height.
+* **A vs E:** Comparison of max current Amplitude vs. Energy.
+
+**Frequency Domain:**
+* **Peak Frequency:** The frequency with the highest magnitude.
+* **Spectral Centroid:** The center of mass of the spectrum.
+* **HFER:** High-Frequency Energy Ratio.
 
 ---
 
 ## Getting Started
 
-### 1. Data
-This project requires a large data file that is **not** included in the repository.
+### 1. Data Setup
+This project requires a large data file that is **not** included in the repository due to size constraints.
 
 1.  Navigate to the Zenodo data release page: [https://zenodo.org/records/8257027](https://zenodo.org/records/8257027)
 2.  Download the file named **`MJD_Train_2.hdf5`**.
+3.  Place it inside the `data/` folder in the root directory:
+    ```text
+    /Majorana-Neutrino-Hunt
+    ├── data/
+    │   └── MJD_Train_2.hdf5
+    ```
 
-> **Note:** This file is approximately 2–3 GB. It is already included in the `.gitignore` file to prevent accidental uploads to GitHub. For this checkpoint, only this single training file is required.
+### 2. Running the Analysis
+You can run this project using a local Python environment **OR** using Docker (recommended for reproducibility).
 
-### 2. Dependencies
-Ensure you have all the required Python libraries installed. You can install them using pip:
+#### Option A: Docker (Recommended)
+Ensure you have Docker Desktop installed.
 
-* `numpy`
-* `pandas`
-* `h5py` (for reading the data file)
-* `scipy`
-* `matplotlib`
-* `scikit-learn`
+1.  **Build the Image:**
+    ```bash
+    docker build -t majorana-hunt .
+    ```
+
+2.  **Run the Container:**
+    Use the following command to run the analysis and save the resulting graphs to your local machine:
+    ```bash
+    docker run -v $(pwd)/graphs:/app/graphs majorana-hunt
+    ```
+    *Note: The `-v` flag mounts your local `graphs/` folder to the container, ensuring plots are saved to your machine before the container exits.*
+
+#### Option B: Local Python Environment
+Ensure you have Python 3.11 installed.
+
+1.  **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+2.  **Run the Experiment:**
+    Execute the module from the root directory:
+    ```bash
+    python -m src.experiments.exp_all
+    ```
 
 ---
 
-## How to Run
+## Outputs
+Upon execution, the script produces:
 
-1.  **Configure File Path:**
-    Inside the `script.ipynb` notebook (or your configuration file), update the file path to point to the `MJD_Train_2.hdf5` file you downloaded.
-
-    *Example:*
-    ```python
-    file_path = "path/to/your/data/MJD_Train_2.hdf5"
-    ```
-
-2.  **Run Analysis:**
-    Once the file path is correct and all dependencies are installed, you can run all the cells in `script.ipynb` to perform the analysis.
+1.  **Console Stats:** T-statistics and P-values for each feature (comparing SSE vs. MSE distributions) are printed to the console to verify statistical significance.
+2.  **Visualizations:** Histograms for every feature are automatically saved to the `graphs/` directory (e.g., `graphs/LQ80_hist.png`, `graphs/avse_hist.png`).
 
 ---
 
