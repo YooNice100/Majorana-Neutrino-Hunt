@@ -1,8 +1,13 @@
-# Ignore data directory
-data/
+# Keep the data folder but ignore the big files inside
+data/*
+!data/.gitkeep
+
+
+
+# Ignore HDF5 files anywhere
 *.hdf5
 *.h5
 
-# If you ever save generated images locally
+# Ignore generated images
 graphs/*.png
 graphs/*.jpg
