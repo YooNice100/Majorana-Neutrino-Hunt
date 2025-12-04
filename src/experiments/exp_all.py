@@ -15,7 +15,8 @@ from src.utils.plots import (
     plot_hist_drift_times,
     plot_hist_peak_frequency,
     plot_hist_spectral_centroid,
-    plot_hist_avse
+    plot_hist_avse,
+    plot_hist_hfer,
 )
 
 # Feature functions
@@ -30,6 +31,8 @@ from src.parameters.time_domain import (
 from src.parameters.frequency_domain import (
     compute_peak_frequency,
     compute_spectral_centroid,
+    compute_hfer,
+    
 )
 
 # Import ONLY for LQ80
@@ -132,6 +135,12 @@ def _clean(x):
 avse_sse = _clean(avse[strict_sse])
 avse_mse = _clean(avse[strict_mse])
 
+# --- hfer  ---
+hfer_vals = []
+for wf in waveforms:
+    hfer_vals.append(compute_hfer(wf))  
+hfer_vals = np.array(hfer_vals)
+
 # -------------------------------------------------
 # Summary
 # -------------------------------------------------
@@ -145,7 +154,7 @@ ttest("Drift Time (50 percent)", drift_50[strict_sse], drift_50[strict_mse])
 ttest("Peak Frequency", peak_freq[strict_sse], peak_freq[strict_mse])
 ttest("Spectral Centroid", spec_centroid[strict_sse], spec_centroid[strict_mse])
 ttest("AvsE", avse[strict_sse], avse[strict_mse])
-
+ttest("HFER", hfer_vals[strict_sse], hfer_vals[strict_mse])
 
 # -------------------------------------------------
 # Save all histograms
@@ -158,7 +167,7 @@ plot_hist_drift_times(drift_50[strict_sse], drift_50[strict_mse], f"{OUT_DIR}/dr
 plot_hist_peak_frequency(peak_freq[strict_sse], peak_freq[strict_mse], f"{OUT_DIR}/peak_freq_hist.png")
 plot_hist_spectral_centroid(spec_centroid[strict_sse], spec_centroid[strict_mse], f"{OUT_DIR}/spectral_centroid_hist.png")
 plot_hist_avse(avse[strict_sse], avse[strict_mse], f"{OUT_DIR}/avse_hist.png")
-
+plot_hist_hfer(hfer_vals[strict_sse], hfer_vals[strict_mse], f"{OUT_DIR}/hfer_hist.png")
 
 print("\nSaved ALL plots to graphs/ folder.")
 print("Done.\n")
