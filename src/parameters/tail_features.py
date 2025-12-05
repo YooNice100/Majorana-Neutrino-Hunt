@@ -134,6 +134,9 @@ def compute_ND80(waveform, n_pre=200):
 
     return depth_abs, idx_notch, depth_norm
 
+# ------------------------------------------------------------
+# 4. Tail Flattening Ratio (TFR)
+# ------------------------------------------------------------
 def compute_tfr(wf: np.ndarray,peak_idx: int,tau_samples: float,tail_len: int = 1000) -> float:
     """
     Tail Flattening Ratio (TFR).

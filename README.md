@@ -25,17 +25,31 @@ The project is organized into modular source code to ensure reproducibility:
 We implement a pipeline to load raw waveforms, apply necessary masks (SSE vs. MSE), and compute the following features:
 
 **Time Domain:**
-* **LQ80:** A shape parameter requiring pole-zero correction.
-* **ND80:** Normalized difference at 80% rise time.
 * **Peak Width:** Width of the pulse between 25% and 75% height.
 * **Energy Duration:** Window duration containing significant energy.
 * **Drift Time:** Time from threshold trigger (tp0) to 50% max height.
 * **AvsE:** Comparison of max current Amplitude vs. Energy.
+* **Time to Peak:** Duration between the pulse start (tp0) and the waveform’s maximum amplitude.
 
 **Frequency Domain:**
 * **Peak Frequency:** The frequency with the highest magnitude.
-* **Spectral Centroid:** The center of mass of the spectrum.
+* **Spectral Centroid (Weighted):** The center of mass of the amplitude spectrum.
 * **HFER:** High-Frequency Energy Ratio.
+* **Spectral Centroid (Power):** The center of mass of the power spectrum.
+* **Band Power Ratio:** The ratio of high‑frequency power to low‑frequency power in a waveform.
+* **Total Power:** Sum of all spectral power components.
+
+**Tail Features:**
+* **LQ80:** A shape parameter requiring pole-zero correction.
+* **ND80:** Normalized difference at 80% rise time.
+* **TFR:** How much the waveform’s tail is flattened by PZ correction.
+* **TCD:** A ratio measuring charge stability between early and late waveform tail regions.
+
+**Gradient Features:**
+* **Current Skewness:** Asymmetry of gradient waveform between tp0 and peak.
+* **Current Kurtosis:** Peakedness of gradient waveform.
+* **Peak Count:** Number of significant local maxima in gradient waveform.
+* **Gradient Baseline Noise:** how noisy the baseline of gradient waveform.
 
 ---
 
