@@ -129,3 +129,45 @@ def compute_ND80(waveform, n_pre=200):
     depth_norm = depth_abs / amp if amp > 0 else np.nan
 
     return depth_abs, idx_notch, depth_norm
+
+def compute_tfr(wf: np.ndarray,peak_idx: int,tau_samples: float,tail_len: int = 1000) -> float:
+    """
+    Tail Flattening Ratio (TFR).
+
+    TFR = std(tail_raw) / std(tail_pz)
+
+    Parameters
+    ----------
+    wf : 1D np.ndarray
+        Raw waveform.
+    peak_idx : int
+        Index of the pulse peak.
+    tau_samples : float
+        Decay constant used for pole-zero correction (in samples).
+    tail_len : int
+        Number of samples in the tail region after the peak.
+
+    Returns
+    -------
+    float
+        Tail Flattening Ratio value.
+    """
+    wf = np.asarray(wf, dtype=float)
+
+    # Safety on tail window
+    start = peak_idx
+    stop = min(peak_idx + tail_len, wf.size)
+    if stop <= start + 5:
+        return np.nan
+
+    tail_raw = wf[start:stop]
+    wf_pz = pole_zero_correction(wf, tau_samples)
+    tail_pz = wf_pz[start:stop]
+
+    std_raw = float(np.std(tail_raw))
+    std_pz = float(np.std(tail_pz))
+
+    if std_pz == 0:
+        return np.nan
+
+    return std_raw / std_pz

@@ -138,3 +138,24 @@ def compute_frequency_spectrum(waveform, sample_spacing=1.0):
 
     amplitude = np.abs(yf) * 2.0 / N
     return xf, amplitude
+
+import numpy as np
+
+def compute_gradient(wf: np.ndarray, dx: float = 1.0) -> np.ndarray:
+    """
+    Compute numerical derivative of a waveform.
+
+    Parameters
+    ----------
+    wf : 1D np.ndarray
+        Input waveform.
+    dx : float
+        Sample spacing (default 1.0).
+
+    Returns
+    -------
+    np.ndarray
+        Gradient of wf with respect to x.
+    """
+    wf = np.asarray(wf, dtype=float)
+    return np.gradient(wf, dx)

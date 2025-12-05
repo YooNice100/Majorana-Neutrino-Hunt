@@ -185,4 +185,48 @@ def compute_avse(raw_waveform, energy_label, n_baseline=50):
 
     return AvsE, A
 
+def _percent_level_value(peak_val: float, level: float) -> float:
+    """Helper: amplitude corresponding to a given fraction of the peak."""
+    return peak_val * level
+
+
+def compute_tdrift_levels(wf: np.ndarray,tp0_idx: int,peak_idx: int,levels=(0.10, 0.50, 0.999)):
+    """
+    Compute drift times from tp0 until given fractions of the peak.
+
+    Parameters
+    ----------
+    wf : 1D np.ndarray
+        Baseline-subtracted waveform.
+    tp0_idx : int
+        Index of tp0 (first rising sample; provided in metadata).
+    peak_idx : int
+        Index of the waveform maximum.
+    levels : iterable of float
+        Fractions of the peak amplitude (e.g., 0.1, 0.5, 0.999).
+
+    Returns
+    -------
+    dict
+        Keys 'tdrift10', 'tdrift50', 'tdrift99' (in samples).
+    """
+    segment = wf[tp0_idx:peak_idx + 1]
+    peak_val = float(wf[peak_idx])
+    results = {}
+    for lvl in levels:
+        target = _percent_level_value(peak_val, lvl)
+        rel_idxs = np.where(segment >= target)[0]
+        if len(rel_idxs) == 0:
+            dt = np.nan
+        else:
+            dt = int(rel_idxs[0])  
+        if np.isclose(lvl, 0.10):
+            results["tdrift10"] = dt
+        elif np.isclose(lvl, 0.50):
+            results["tdrift50"] = dt
+        else:  
+            results["tdrift99"] = dt
+    return results
+
+
 

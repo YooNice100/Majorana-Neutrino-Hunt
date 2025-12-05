@@ -70,3 +70,44 @@ def compute_hfer(waveform, frac_high=0.25, n_baseline=50):
     num = np.sum(mag_no_dc[k0:])
     den = np.sum(mag_no_dc)
     return float(num / den) if den > 0 else np.nan
+
+def compute_band_power_ratio(wf: np.ndarray,fs: float,low_band=(0.0, 0.5e6),high_band=(0.5e6, 5.0e6)) -> float:
+    """
+    Band Power Ratio (BPR) = high-band power / low-band power.
+
+    Parameters
+    ----------
+    wf : 1D np.ndarray
+        Baseline-subtracted waveform.
+    fs : float
+        Sampling frequency in Hz (100e6 for this dataset).
+    low_band : (float, float)
+        [f_min, f_max] for the low-frequency band (Hz).
+    high_band : (float, float)
+        [f_min, f_max] for the high-frequency band (Hz).
+
+    Returns
+    -------
+    float
+        Band power ratio.
+    """
+    x = np.asarray(wf, dtype=float)
+    n = x.size
+    if n == 0:
+        return np.nan
+
+    freqs = np.fft.rfftfreq(n, d=1.0 / fs)
+    fft_vals = np.fft.rfft(x)
+    power = np.abs(fft_vals) ** 2
+
+    # low band
+    low_mask = (freqs >= low_band[0]) & (freqs < low_band[1])
+    high_mask = (freqs >= high_band[0]) & (freqs < high_band[1])
+
+    low_power = float(np.sum(power[low_mask]))
+    high_power = float(np.sum(power[high_mask]))
+
+    if low_power == 0:
+        return np.nan
+
+    return high_power / low_power

@@ -20,20 +20,29 @@ from src.utils.plots import (
 )
 
 # Feature functions
-from src.parameters.tail_features import compute_LQ80, compute_ND80
+from src.parameters.tail_features import compute_LQ80, compute_ND80, compute_tfr
 from src.parameters.time_domain import (
     compute_peak_width_25_75,
     compute_energy_duration,
     estimate_tp0_threshold,
     compute_drift_times,
-    compute_avse
+    compute_avse,
+    compute_tdrift_levels
 )
+
+
 from src.parameters.frequency_domain import (
     compute_peak_frequency,
     compute_spectral_centroid,
     compute_hfer,
     
 )
+
+from src.parameters.gradient_features import (
+    compute_peak_count,
+    compute_gradient_baseline_noise,
+)
+
 
 # Import ONLY for LQ80
 from src.utils.transforms import pole_zero_correction
