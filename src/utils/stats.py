@@ -5,24 +5,26 @@ from scipy.stats import ttest_ind
 
 
 # ------------------------------------------------------------
-# Build strict SSE / MSE masks
+# Build SSE / MSE masks
 # ------------------------------------------------------------
-def make_strict_masks(data):
+def make_sse_mse_masks(data):
     """
-    Build boolean masks for strict SSE and strict MSE events.
+    Build boolean masks for SSE and MSE events.
 
     data is the dictionary returned by load_hdf5() in io.py
     and must contain the four PSD label arrays.
+    SSE = all PSD labels are 1
+    MSE = any PSD label is 0
     """
     low  = data["psd_label_low_avse"].astype(bool)
     high = data["psd_label_high_avse"].astype(bool)
     dcr  = data["psd_label_dcr"].astype(bool)
     lq   = data["psd_label_lq"].astype(bool)
 
-    strict_sse =  low & (~high) & dcr & lq
-    strict_mse = (~low) & high & (~dcr) & (~lq)
+    sse = low & high & dcr & lq
+    mse = ~(sse)
 
-    return strict_sse, strict_mse
+    return sse, mse
 
 
 # ------------------------------------------------------------

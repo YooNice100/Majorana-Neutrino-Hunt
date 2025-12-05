@@ -4,6 +4,7 @@ from scipy.stats import ttest_ind
 from scipy.stats import mannwhitneyu
 from sklearn.metrics import roc_auc_score
 
+from src.utils.stats import make_sse_mse_masks
 from src.utils.io import load_hdf5
 from src.utils.plots import (
     plot_hist_peak_width,
@@ -35,16 +36,9 @@ print(f"Number of events: {N}")
 
 
 # ------------------------------------------------------------
-# Strict SSE / MSE labels
+# SSE / MSE labels
 # ------------------------------------------------------------
-low  = data["psd_label_low_avse"].astype(bool)
-high = data["psd_label_high_avse"].astype(bool)
-dcr  = data["psd_label_dcr"].astype(bool)
-lq   = data["psd_label_lq"].astype(bool)
-
-strict_sse = low & (~high) & dcr & lq
-strict_mse = (~low) & high & (~dcr) & (~lq)
-
+sse, mse = make_sse_mse_masks(data)
 
 # ------------------------------------------------------------
 # Compute features
@@ -83,14 +77,14 @@ drift_50 = np.array(drift_50)
 # ------------------------------------------------------------
 # Split into SSE / MSE groups
 # ------------------------------------------------------------
-pw_sse = peak_width[strict_sse]
-pw_mse = peak_width[strict_mse]
+pw_sse = peak_width[sse]
+pw_mse = peak_width[mse]
 
-ed_sse = energy_dur[strict_sse]
-ed_mse = energy_dur[strict_mse]
+ed_sse = energy_dur[sse]
+ed_mse = energy_dur[mse]
 
-dt_sse = drift_50[strict_sse]
-dt_mse = drift_50[strict_mse]
+dt_sse = drift_50[sse]
+dt_mse = drift_50[mse]
 
 
 # ------------------------------------------------------------
@@ -128,16 +122,6 @@ plot_hist_drift_times(dt_sse, dt_mse, save_path=f"{OUT_DIR}/drift_50_hist.png")
 print("\nSaved all time-domain plots to graphs/.\n")
 
 # --- AvsE ---
-
-def _strict_sse_mse_masks(d):
-    low  = d["psd_label_low_avse"].astype(bool)
-    high = d["psd_label_high_avse"].astype(bool)
-    dcr  = d["psd_label_dcr"].astype(bool)
-    lq   = d["psd_label_lq"].astype(bool)
-    sse = low & (~high) & dcr & lq
-    mse = (~low) & high & (~dcr) & (~lq)
-    return sse, mse
-
 def run_avse_experiment(data_path="data/MJD_Train_2.hdf5", out_dir="graphs"):
     os.makedirs(out_dir, exist_ok=True)
     print(f"Loading: {data_path}")
@@ -149,8 +133,8 @@ def run_avse_experiment(data_path="data/MJD_Train_2.hdf5", out_dir="graphs"):
     # compute AvsE using your implementation in parameters/time_domain.py
     avse, _ = compute_avse(W, E)
 
-    # strict masks
-    sse_mask, mse_mask = _strict_sse_mse_masks(d)
+    # make sse / mse masks
+    sse_mask, mse_mask = make_sse_mse_masks(d)
 
     # split
     sse_vals = avse[sse_mask]

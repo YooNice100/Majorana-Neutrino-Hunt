@@ -1,23 +1,8 @@
 import numpy as np
-from scipy.fft import rfft, rfftfreq
-
-
-# ------------------------------------------------------------
-# 1. Compute one-sided frequency spectrum
-# ------------------------------------------------------------
-def compute_frequency_spectrum(waveform, sample_spacing=1.0):
-    y = np.asarray(waveform, dtype=float)
-    N = len(y)
-
-    yf = rfft(y)
-    freqs = rfftfreq(N, d=sample_spacing)
-    amplitude = np.abs(yf) * 2 / N
-
-    return freqs, amplitude
-
+from src.utils.transforms import compute_frequency_spectrum, compute_rfft_power_spectrum
 
 # ------------------------------------------------------------
-# 2. Peak frequency
+# 1. Peak frequency
 # ------------------------------------------------------------
 def compute_peak_frequency(waveform, sample_spacing=1.0):
     freqs, amp = compute_frequency_spectrum(waveform, sample_spacing)
@@ -31,7 +16,7 @@ def compute_peak_frequency(waveform, sample_spacing=1.0):
 
 
 # ------------------------------------------------------------
-# 3. Spectral centroid
+# 2. Spectral centroid
 # ------------------------------------------------------------
 def compute_spectral_centroid(waveform, sample_spacing=1.0):
     freqs, amp = compute_frequency_spectrum(waveform, sample_spacing)
@@ -45,9 +30,8 @@ def compute_spectral_centroid(waveform, sample_spacing=1.0):
 
 
 # ------------------------------------------------------------
-# 4. HFER fourier sharpness
+# 3. HFER fourier sharpness
 # ------------------------------------------------------------
-
 def compute_hfer(waveform, frac_high=0.25, n_baseline=50):
     w = np.asarray(waveform, dtype=float)
     if w.size == 0:
@@ -71,6 +55,9 @@ def compute_hfer(waveform, frac_high=0.25, n_baseline=50):
     den = np.sum(mag_no_dc)
     return float(num / den) if den > 0 else np.nan
 
+# ------------------------------------------------------------
+# 4. Band Power Ratio
+# ------------------------------------------------------------
 def compute_band_power_ratio(wf: np.ndarray,fs: float,low_band=(0.0, 0.5e6),high_band=(0.5e6, 5.0e6)) -> float:
     """
     Band Power Ratio (BPR) = high-band power / low-band power.
@@ -111,3 +98,21 @@ def compute_band_power_ratio(wf: np.ndarray,fs: float,low_band=(0.0, 0.5e6),high
         return np.nan
 
     return high_power / low_power
+
+# ------------------------------------------------------------
+# 5. Spectral centroid using power spectrum
+# ------------------------------------------------------------
+def compute_spectral_centroid_power(wf):
+    xf, power_spectrum = compute_rfft_power_spectrum(wf)
+    ps_sum = np.sum(power_spectrum)
+    if ps_sum <= 0:
+        return 0.0
+    return np.sum(xf * power_spectrum) / ps_sum
+
+# ------------------------------------------------------------
+# 6. Total power using power spectrum
+# ------------------------------------------------------------
+def compute_total_power(wf):
+    xf, power_spectrum = compute_rfft_power_spectrum(wf)
+    total_power = np.sum(power_spectrum)
+    return total_power

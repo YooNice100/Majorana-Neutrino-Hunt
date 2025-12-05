@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.optimize import curve_fit
 from scipy.fft import rfft, rfftfreq
-
+from scipy.ndimage import gaussian_filter1d
+from scipy.signal import windows
 
 # ------------------------------------------------------------
 # Baseline estimation
@@ -30,7 +31,7 @@ def exponential(t, a, tau1, b, tau2):
 
 
 # ------------------------------------------------------------
-# Pole–Zero Correction (OPTIONAL — disabled by default)
+# Pole–Zero Correction 
 # ------------------------------------------------------------
 def pole_zero_correction(waveform, use_pz=False):
     """
@@ -108,7 +109,6 @@ def pole_zero_correction(waveform, use_pz=False):
         return y, y
 
 
-
 # ------------------------------------------------------------
 # Frequency Spectrum
 # ------------------------------------------------------------
@@ -139,8 +139,9 @@ def compute_frequency_spectrum(waveform, sample_spacing=1.0):
     amplitude = np.abs(yf) * 2.0 / N
     return xf, amplitude
 
-import numpy as np
-
+# ------------------------------------------------------------
+# Gradient
+# ------------------------------------------------------------
 def compute_gradient(wf: np.ndarray, dx: float = 1.0) -> np.ndarray:
     """
     Compute numerical derivative of a waveform.
@@ -159,3 +160,35 @@ def compute_gradient(wf: np.ndarray, dx: float = 1.0) -> np.ndarray:
     """
     wf = np.asarray(wf, dtype=float)
     return np.gradient(wf, dx)
+
+# ------------------------------------------------------------
+# RFFT Power Spectrum
+# ------------------------------------------------------------
+def compute_rfft_power_spectrum(
+        raw_waveform,
+        sample_spacing=1e-6,
+        smoothing_sigma=0.2
+    ):
+    # Computes baseline-subtracted, smoothed, windowed FFT power spectrum.
+    N = len(raw_waveform)
+    # Baseline subtraction
+    baseline, _ = estimate_baseline(raw_waveform)
+    waveform = raw_waveform - baseline
+
+    # Gaussian smoothing (avoid oversmoothing!)
+    waveform = gaussian_filter1d(waveform, sigma=smoothing_sigma)
+
+    # # Amplitude-preserving Hann window
+    window = windows.hann(N)
+    window_norm = window / (np.sum(window) / N)    # avg(window_norm) = 1
+    waveform = waveform * window
+
+    # FFT
+    yf = rfft(waveform)
+    xf = rfftfreq(N, d=sample_spacing)
+
+    # Power spectrum (single-sided)
+    # normalize by N to keep energy scale correct
+    power_spectrum = (np.abs(yf) ** 2) / N
+
+    return xf, power_spectrum

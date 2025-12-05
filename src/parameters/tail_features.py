@@ -5,7 +5,7 @@ from ..utils.transforms import pole_zero_correction, estimate_baseline
 # ------------------------------------------------------------
 # 1. Tail Charge Difference
 # ------------------------------------------------------------
-def compute_tail_charge_diff(waveform, energy, peak_index, use_pz=True):
+def compute_tail_charge_diff(waveform, energy, use_pz=True):
     """
     Normalized late-vs-early charge difference.
 
@@ -20,6 +20,9 @@ def compute_tail_charge_diff(waveform, energy, peak_index, use_pz=True):
         wf_pz, _ = pole_zero_correction(waveform)
     else:
         wf_pz = np.asarray(waveform, dtype=float)
+
+    # Find peak index
+    peak_index = np.argmax(wf_pz)
 
     S = 50  # samples per microsecond
 
@@ -46,12 +49,13 @@ def compute_tail_charge_diff(waveform, energy, peak_index, use_pz=True):
 # ------------------------------------------------------------
 # 2. LQ80
 # ------------------------------------------------------------
-def compute_LQ80(waveform, waveform_pz):
+def compute_LQ80(waveform):
     """
     Late Charge 80:
     Area difference between raw and PZ-corrected waveform
     starting at the 80 percent rising edge.
     """
+    waveform_pz, _ = pole_zero_correction(waveform)
     y  = np.asarray(waveform, dtype=float)
     yc = np.asarray(waveform_pz, dtype=float)
 

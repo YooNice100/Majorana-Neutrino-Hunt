@@ -51,5 +51,3 @@ plot_fft_linear(waveform, save_path=f"{OUT_DIR}/fft_linear.png")
 plot_fft_log(waveform, save_path=f"{OUT_DIR}/fft_log.png")
 
 print("Done! Check the graphs folder.")
-
-

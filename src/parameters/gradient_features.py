@@ -1,6 +1,11 @@
 import numpy as np
 from src.utils.transforms import compute_gradient
+from scipy.stats import kurtosis, skew
+from scipy.signal import savgol_filter
 
+# ------------------------------------------------------------
+# 1. Peak Count in Gradient
+# ------------------------------------------------------------
 def compute_peak_count(wf: np.ndarray,
                        dx: float = 1.0,
                        threshold_frac: float = 0.1,
@@ -43,6 +48,9 @@ def compute_peak_count(wf: np.ndarray,
 
     return len(peaks)
 
+# ------------------------------------------------------------
+# 2. Gradient Baseline Noise
+# ------------------------------------------------------------
 def compute_gradient_baseline_noise(wf: np.ndarray,
                                     dx: float = 1.0,
                                     baseline_end: int = 200) -> float:
@@ -70,3 +78,30 @@ def compute_gradient_baseline_noise(wf: np.ndarray,
         return np.nan
     return float(np.sqrt(np.mean(g[:end] ** 2)))
 
+# ------------------------------------------------------------
+# 3. Current Kurtosis
+# ------------------------------------------------------------
+def compute_current_kurtosis(waveform, tp0_index):
+    """
+    Computes the Kurtosis of the Current Waveform during the rise.
+    """    
+    peak_index = np.argmax(waveform)
+    wf_smooth = savgol_filter(waveform, window_length=15, polyorder=3)
+    current_waveform = compute_gradient(wf_smooth)
+    current_pulse = current_waveform[tp0_index : peak_index + 1]
+    current_kurtosis = kurtosis(current_pulse, bias=False)
+    return current_kurtosis
+
+# ------------------------------------------------------------
+# 4. Current Skewness
+# ------------------------------------------------------------
+def compute_current_skewness(waveform, tp0_index):
+    """
+    Computes the Skewness of the Current Waveform during the rise.
+    """    
+    peak_index = np.argmax(waveform)
+    wf_smooth = savgol_filter(waveform, window_length=15, polyorder=3)
+    current_waveform = compute_gradient(wf_smooth)
+    current_pulse = current_waveform[tp0_index : peak_index + 1]
+    current_skewness = skew(current_pulse, bias=False)
+    return current_skewness

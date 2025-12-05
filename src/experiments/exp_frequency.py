@@ -11,6 +11,7 @@ from src.parameters.frequency_domain import (
     compute_peak_frequency,
     compute_spectral_centroid,
 )
+from src.utils.stats import make_sse_mse_masks
 
 
 # ------------------------------------------------------------
@@ -31,15 +32,9 @@ print(f"Events loaded: {N}")
 
 
 # ------------------------------------------------------------
-# Build strict SSE / MSE masks
+# Build SSE / MSE masks
 # ------------------------------------------------------------
-low  = data["psd_label_low_avse"].astype(bool)
-high = data["psd_label_high_avse"].astype(bool)
-dcr  = data["psd_label_dcr"].astype(bool)
-lq   = data["psd_label_lq"].astype(bool)
-
-strict_sse = low & (~high) & dcr & lq
-strict_mse = (~low) & high & (~dcr) & (~lq)
+sse, mse = make_sse_mse_masks(data)
 
 
 # ------------------------------------------------------------
@@ -61,11 +56,11 @@ centroid = np.array(centroid)
 # ------------------------------------------------------------
 # Split into SSE/MSE groups
 # ------------------------------------------------------------
-pf_sse = peak_freq[strict_sse]
-pf_mse = peak_freq[strict_mse]
+pf_sse = peak_freq[sse]
+pf_mse = peak_freq[mse]
 
-sc_sse = centroid[strict_sse]
-sc_mse = centroid[strict_mse]
+sc_sse = centroid[sse]
+sc_mse = centroid[mse]
 
 
 # ------------------------------------------------------------

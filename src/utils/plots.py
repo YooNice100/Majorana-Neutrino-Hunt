@@ -34,7 +34,7 @@ def _finalize(fig, save_path):
 # ------------------------------------------------------------
 def plot_LQ80_waveform(waveform, save_path=None):
     t = np.arange(len(waveform))
-    waveform_pz = pole_zero_correction(waveform)[0]
+    waveform_pz, _ = pole_zero_correction(waveform)
 
     baseline, _ = estimate_baseline(waveform)
     peak = np.max(waveform)
@@ -207,3 +207,21 @@ def plot_hist_avse(sse, mse, save_path=None):
 
 def plot_hist_hfer(sse, mse, save_path=None):
     return _hist_plot(sse, mse, "HFER (Fourier sharpness)", "HFER", save_path)
+
+def plot_hist_current_kurtosis(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Current Kurtosis", "Current Kurtosis", save_path)
+
+def plot_hist_current_skewness(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Current Skewness", "Current Skewness", save_path)
+
+def plot_hist_spectral_centroid_power(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Spectral Centroid (Power Spectrum)", "Spectral Centroid (Hz)", save_path)
+
+def plot_hist_tail_charge_diff(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Tail Charge Difference", "Tail Charge Diff", save_path)
+
+def plot_hist_time_to_peak(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Time to Peak", "Time to Peak", save_path)
+
+def plot_hist_total_power(sse, mse, save_path=None):
+    return _hist_plot(sse, mse, "Total Power", "Total Power", save_path)

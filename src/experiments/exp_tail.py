@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from ..utils.io import load_hdf5
-from ..utils.stats import make_strict_masks, summarize_feature
+from ..utils.stats import make_sse_mse_masks, summarize_feature
 from ..parameters.tail_features import compute_ND80
 from ..utils.plots import plot_hist_ND80
 
@@ -23,8 +23,8 @@ def main():
     print("Loading file:", DATA_PATH)
     data = load_hdf5(DATA_PATH)
 
-    # 2. Build strict SSE / MSE masks
-    strict_sse, strict_mse = make_strict_masks(data)
+    # 2. Build SSE / MSE masks
+    sse, mse = make_sse_mse_masks(data)
 
     # 3. Compute ND80 (normalized) for every event
     waveforms = data["raw_waveform"]
@@ -39,8 +39,8 @@ def main():
         nd80_norm_all[i] = nd80_norm
 
     # 4. Split into SSE vs MSE distributions
-    nd80_sse = nd80_norm_all[strict_sse]
-    nd80_mse = nd80_norm_all[strict_mse]
+    nd80_sse = nd80_norm_all[sse]
+    nd80_mse = nd80_norm_all[mse]
 
     # 5. Print basic stats + Welch t-test
     summarize_feature("ND80 (normalized)", nd80_sse, nd80_mse)
