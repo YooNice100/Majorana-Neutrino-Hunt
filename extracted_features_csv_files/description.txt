@@ -1,0 +1,9 @@
+For each function there is a train.csv and a test.csv
+
+Titles of csv will be based off of what function it is performing it on e.g.
+LQ80_train.csv and LQ80_test.csv
+
+Each csv will have id column and column of outputs
+
+each id will look like [id]_train_0 <- the id here will be replaced with actual id
+
