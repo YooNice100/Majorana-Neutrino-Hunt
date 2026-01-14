@@ -1,5 +1,5 @@
 import numpy as np
-from src.utils.transforms import compute_gradient
+from src.utils.transforms import compute_gradient, peak_after_max_slope
 from scipy.stats import kurtosis, skew
 from scipy.signal import savgol_filter
 
@@ -85,7 +85,7 @@ def compute_current_kurtosis(waveform, tp0_index):
     """
     Computes the Kurtosis of the Current Waveform during the rise.
     """    
-    peak_index = np.argmax(waveform)
+    peak_index = peak_after_max_slope(waveform, tp0_index)
     wf_smooth = savgol_filter(waveform, window_length=15, polyorder=3)
     current_waveform = compute_gradient(wf_smooth)
     current_pulse = current_waveform[tp0_index : peak_index + 1]
@@ -99,7 +99,7 @@ def compute_current_skewness(waveform, tp0_index):
     """
     Computes the Skewness of the Current Waveform during the rise.
     """    
-    peak_index = np.argmax(waveform)
+    peak_index = peak_after_max_slope(waveform, tp0_index)
     wf_smooth = savgol_filter(waveform, window_length=15, polyorder=3)
     current_waveform = compute_gradient(wf_smooth)
     current_pulse = current_waveform[tp0_index : peak_index + 1]

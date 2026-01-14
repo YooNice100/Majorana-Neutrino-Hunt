@@ -192,3 +192,23 @@ def compute_rfft_power_spectrum(
     power_spectrum = (np.abs(yf) ** 2) / N
 
     return xf, power_spectrum
+
+# ------------------------------------------------------------
+# Find index of first peak after the steepest rise
+# ------------------------------------------------------------
+def peak_after_max_slope(wf, tp0, S=50, search_us=8.0):
+    tp0 = int(tp0)
+    start = max(tp0, 1)
+    end = min(len(wf) - 1, tp0 + int(search_us * S))
+
+    if end <= start:
+        return None
+
+    deriv = np.diff(wf)
+    max_slope_idx = start + np.argmax(deriv[start:end])
+
+    # search a short window after slope
+    peak_start = max_slope_idx
+    peak_end = min(len(wf), max_slope_idx + int(2.0 * S))
+
+    return peak_start + int(np.argmax(wf[peak_start:peak_end]))

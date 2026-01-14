@@ -1,11 +1,11 @@
 import numpy as np
-from ..utils.transforms import pole_zero_correction, estimate_baseline
+from ..utils.transforms import pole_zero_correction, estimate_baseline, peak_after_max_slope
 
 
 # ------------------------------------------------------------
 # 1. Tail Charge Difference
 # ------------------------------------------------------------
-def compute_tail_charge_diff(waveform, energy, use_pz=True):
+def compute_tail_charge_diff(waveform, energy, tp0, use_pz=True):
     """
     Normalized late-vs-early charge difference.
 
@@ -22,7 +22,7 @@ def compute_tail_charge_diff(waveform, energy, use_pz=True):
         wf_pz = np.asarray(waveform, dtype=float)
 
     # Find peak index
-    peak_index = np.argmax(wf_pz)
+    peak_index = peak_after_max_slope(wf_pz, tp0)
 
     S = 50  # samples per microsecond
 
@@ -43,7 +43,6 @@ def compute_tail_charge_diff(waveform, energy, use_pz=True):
 
     diff = late_area - early_area
     return diff / energy if energy > 0 else np.nan
-
 
 
 # ------------------------------------------------------------
