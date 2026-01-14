@@ -1,5 +1,5 @@
 import numpy as np
-from ..utils.transforms import estimate_baseline
+from ..utils.transforms import estimate_baseline, peak_after_max_slope
 from scipy.interpolate import interp1d
 
 # ------------------------------------------------------------
@@ -235,4 +235,8 @@ def compute_tdrift_levels(wf: np.ndarray,tp0_idx: int,peak_idx: int,levels=(0.10
 # ------------------------------------------------------------
 def compute_time_to_peak(wf, tp0):
     peak_index = np.argmax(wf)
+    return peak_index - tp0
+
+def compute_time_to_main_peak(wf, tp0):
+    peak_index = peak_after_max_slope(wf, tp0)
     return peak_index - tp0

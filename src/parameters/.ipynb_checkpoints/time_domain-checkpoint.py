@@ -1,5 +1,5 @@
 import numpy as np
-from ..utils.transforms import estimate_baseline
+from ..utils.transforms import estimate_baseline, peak_after_max_slope
 from scipy.interpolate import interp1d
 
 # ------------------------------------------------------------
@@ -118,6 +118,31 @@ def estimate_tp0_threshold(waveform, threshold=30):
     idxs = np.where(y > (baseline + threshold))[0]
     return int(idxs[0]) if len(idxs) > 0 else None
 
+# ------------------------------------------------------------
+# 4. AvsE 
+# ------------------------------------------------------------
+def compute_avse(raw_waveform, energy_label, n_baseline=50):
+    N = raw_waveform.shape[0]
+    AvsE = np.full(N, np.nan, float)
+    A    = np.full(N, np.nan, float)
+
+    for i in range(N):
+        w = raw_waveform[i].astype(float)
+        E = float(energy_label[i])
+        b = np.mean(w[:n_baseline])
+        w0 = w - b
+
+        cur = np.diff(w0)  # per-sample slope
+        Ai = np.max(cur) if cur.size else np.nan
+
+        A[i] = Ai
+        AvsE[i] = (Ai / E) if E > 0 else np.nan
+
+    return AvsE, A
+
+# ------------------------------------------------------------
+# 5. Drift Times
+# ------------------------------------------------------------
 def compute_drift_times(waveform, tp0, step=0.1):
     """
     Computes drift-time parameters by interpolating the rising edge.
@@ -160,3 +185,58 @@ def compute_drift_times(waveform, tp0, step=0.1):
         return np.nan, np.nan, np.nan
 
     return tdrift_999, tdrift_50, tdrift_10
+
+# drift times helper
+def _percent_level_value(peak_val: float, level: float) -> float:
+    """Helper: amplitude corresponding to a given fraction of the peak."""
+    return peak_val * level
+
+# drift times levels (another version?)
+def compute_tdrift_levels(wf: np.ndarray,tp0_idx: int,peak_idx: int,levels=(0.10, 0.50, 0.999)):
+    """
+    Compute drift times from tp0 until given fractions of the peak.
+
+    Parameters
+    ----------
+    wf : 1D np.ndarray
+        Baseline-subtracted waveform.
+    tp0_idx : int
+        Index of tp0 (first rising sample; provided in metadata).
+    peak_idx : int
+        Index of the waveform maximum.
+    levels : iterable of float
+        Fractions of the peak amplitude (e.g., 0.1, 0.5, 0.999).
+
+    Returns
+    -------
+    dict
+        Keys 'tdrift10', 'tdrift50', 'tdrift99' (in samples).
+    """
+    segment = wf[tp0_idx:peak_idx + 1]
+    peak_val = float(wf[peak_idx])
+    results = {}
+    for lvl in levels:
+        target = _percent_level_value(peak_val, lvl)
+        rel_idxs = np.where(segment >= target)[0]
+        if len(rel_idxs) == 0:
+            dt = np.nan
+        else:
+            dt = int(rel_idxs[0])  
+        if np.isclose(lvl, 0.10):
+            results["tdrift10"] = dt
+        elif np.isclose(lvl, 0.50):
+            results["tdrift50"] = dt
+        else:  
+            results["tdrift99"] = dt
+    return results
+
+# ------------------------------------------------------------
+# 6. Time to Peak
+# ------------------------------------------------------------
+def compute_time_to_peak(wf, tp0):
+    peak_index = np.argmax(wf)
+    return peak_index - tp0
+
+def compute_time_to_main_peak(wf, tp0):
+    peak_index = peak_after_max_slope(wf, tp0)
+    return peak_index - tp0

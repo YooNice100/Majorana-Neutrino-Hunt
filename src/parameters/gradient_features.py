@@ -85,8 +85,9 @@ def compute_current_kurtosis(waveform, tp0_index):
     """
     Computes the Kurtosis of the Current Waveform during the rise.
     """    
-    peak_index = peak_after_max_slope(waveform, tp0_index)
+    # peak_index = peak_after_max_slope(waveform, tp0_index)
     wf_smooth = savgol_filter(waveform, window_length=15, polyorder=3)
+    peak_index = peak_after_max_slope(wf_smooth, tp0_index)
     current_waveform = compute_gradient(wf_smooth)
     current_pulse = current_waveform[tp0_index : peak_index + 1]
     current_kurtosis = kurtosis(current_pulse, bias=False)
