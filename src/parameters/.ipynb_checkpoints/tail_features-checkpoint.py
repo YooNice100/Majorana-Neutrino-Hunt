@@ -219,3 +219,52 @@ def compute_PPR(waveform, n_plateau=300):
     plateau = float(np.mean(y[-n_plateau:]))
 
     return plateau / peak_val
+
+# ------------------------------------------------------------
+# 6. Late Over Early
+# ------------------------------------------------------------
+def compute_late_over_early(waveform, tp0, use_pz=True, S=50, eps=1e-6):
+    """
+    Late-over-early ratio using the same windows as TCD.
+
+    Early window: 0.5–1.5 µs after main peak
+    Late window : 2.0–3.0 µs after main peak
+
+    late_over_early = late_area / (early_area + eps)
+    """
+
+    wf = np.asarray(waveform, dtype=float)
+
+    # Optional PZ correction
+    if use_pz:
+        wf, _ = pole_zero_correction(wf)
+
+    # Baseline subtract using pre-tp0 region
+    pre0 = max(0, tp0 - int(1.0 * S))
+    pre1 = tp0
+    if pre1 <= pre0:
+        return np.nan
+    baseline = np.median(wf[pre0:pre1])
+    wf = wf - baseline
+
+    # Main peak after tp0
+    peak_idx = peak_after_max_slope(wf, tp0, S=S, search_us=8.0)
+
+    # Windows
+    e_start = peak_idx + int(0.5 * S)
+    e_end   = peak_idx + int(1.5 * S)
+    l_start = peak_idx + int(2.0 * S)
+    l_end   = peak_idx + int(3.0 * S)
+
+    # Bounds
+    if l_end > len(wf) or e_start >= e_end:
+        return np.nan
+
+    # Areas (positive-only to represent "charge" for positive pulses)
+    early_area = float(np.sum(np.maximum(wf[e_start:e_end], 0.0)))
+    late_area  = float(np.sum(np.maximum(wf[l_start:l_end], 0.0)))
+
+    if not np.isfinite(early_area) or early_area <= 0:
+        return np.nan
+
+    return late_area / (early_area + eps)
