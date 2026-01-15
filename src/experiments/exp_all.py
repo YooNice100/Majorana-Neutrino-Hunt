@@ -127,8 +127,7 @@ for i, wf in enumerate(waveforms):
     total_power.append(compute_total_power(wf))
 
     # --- Tail charge difference ---
-    energy = energy_label[i]
-    tail_charge_diff.append(compute_tail_charge_diff(wf, energy, tp0_true))
+    tail_charge_diff.append(compute_tail_charge_diff(wf, tp0_true))
 
     # --- Time to peak ---
     time_to_peak.append(compute_time_to_peak(wf, tp0_true))
