@@ -5,45 +5,52 @@ from ..utils.transforms import pole_zero_correction, estimate_baseline, peak_aft
 # ------------------------------------------------------------
 # 1. Tail Charge Difference
 # ------------------------------------------------------------
-def compute_tail_charge_diff(waveform, energy, tp0, use_pz=True):
+def compute_tail_charge_diff(waveform, tp0, use_pz=True, S=50):
     """
-    Normalized late-vs-early charge difference.
+    Late-vs-early charge difference normalized by peak height (not energy).
 
     Early window: 0.5–1.5 µs after peak
     Late window : 2.0–3.0 µs after peak
 
-    tail_charge_diff = (late_area - early_area) / energy
+    tcd = (late_area - early_area) / peak_height
     """
+    wf = np.asarray(waveform, dtype=float)
 
     # Optional PZ correction
     if use_pz:
-        wf_pz, _ = pole_zero_correction(waveform)
-    else:
-        wf_pz = np.asarray(waveform, dtype=float)
+        wf, _ = pole_zero_correction(wf)
 
-    # Find peak index
-    peak_index = peak_after_max_slope(wf_pz, tp0)
+    # Baseline subtract using pre-tp0 region (safe default)
+    pre0 = max(0, tp0 - int(1.0 * S))
+    pre1 = tp0
+    if pre1 <= pre0:
+        return np.nan
+    baseline = np.median(wf[pre0:pre1])
+    wf = wf - baseline
 
-    S = 50  # samples per microsecond
+    # Peak: choose main peak after tp0 (avoids late pile-up global max)
+    peak_idx = peak_after_max_slope(wf, tp0, S=S, search_us=8.0)
 
-    # Early window
-    e_start = peak_index + int(0.5 * S)
-    e_end   = peak_index + int(1.5 * S)
+    # Windows
+    e_start = peak_idx + int(0.5 * S)
+    e_end   = peak_idx + int(1.5 * S)
+    l_start = peak_idx + int(2.0 * S)
+    l_end   = peak_idx + int(3.0 * S)
 
-    # Late window
-    l_start = peak_index + int(2.0 * S)
-    l_end   = peak_index + int(3.0 * S)
-
-    # Bounds check
-    if l_end >= len(wf_pz) or e_start >= e_end:
+    # Bounds
+    if l_end > len(wf) or e_start >= e_end:
         return np.nan
 
-    early_area = float(np.sum(wf_pz[e_start:e_end]))
-    late_area  = float(np.sum(wf_pz[l_start:l_end]))
-
+    early_area = float(np.sum(wf[e_start:e_end]))
+    late_area  = float(np.sum(wf[l_start:l_end]))
     diff = late_area - early_area
-    return diff / energy if energy > 0 else np.nan
 
+    peak_height = float(wf[peak_idx])
+    
+    if not np.isfinite(peak_height) or abs(peak_height) < 1e-6:
+        return np.nan
+
+    return diff / peak_height
 
 # ------------------------------------------------------------
 # 2. LQ80
@@ -212,3 +219,52 @@ def compute_PPR(waveform, n_plateau=300):
     plateau = float(np.mean(y[-n_plateau:]))
 
     return plateau / peak_val
+
+# ------------------------------------------------------------
+# 6. Late Over Early
+# ------------------------------------------------------------
+def compute_late_over_early(waveform, tp0, use_pz=True, S=50, eps=1e-6):
+    """
+    Late-over-early ratio using the same windows as TCD.
+
+    Early window: 0.5–1.5 µs after main peak
+    Late window : 2.0–3.0 µs after main peak
+
+    late_over_early = late_area / (early_area + eps)
+    """
+
+    wf = np.asarray(waveform, dtype=float)
+
+    # Optional PZ correction
+    if use_pz:
+        wf, _ = pole_zero_correction(wf)
+
+    # Baseline subtract using pre-tp0 region
+    pre0 = max(0, tp0 - int(1.0 * S))
+    pre1 = tp0
+    if pre1 <= pre0:
+        return np.nan
+    baseline = np.median(wf[pre0:pre1])
+    wf = wf - baseline
+
+    # Main peak after tp0
+    peak_idx = peak_after_max_slope(wf, tp0, S=S, search_us=8.0)
+
+    # Windows
+    e_start = peak_idx + int(0.5 * S)
+    e_end   = peak_idx + int(1.5 * S)
+    l_start = peak_idx + int(2.0 * S)
+    l_end   = peak_idx + int(3.0 * S)
+
+    # Bounds
+    if l_end > len(wf) or e_start >= e_end:
+        return np.nan
+
+    # Areas (positive-only to represent "charge" for positive pulses)
+    early_area = float(np.sum(np.maximum(wf[e_start:e_end], 0.0)))
+    late_area  = float(np.sum(np.maximum(wf[l_start:l_end], 0.0)))
+
+    if not np.isfinite(early_area) or early_area <= 0:
+        return np.nan
+
+    return late_area / (early_area + eps)
