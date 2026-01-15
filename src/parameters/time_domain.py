@@ -55,29 +55,21 @@ def compute_peak_width_25_75(waveform):
 # ------------------------------------------------------------
 # 2. Energy Duration (time to reach 90 percent cumulative energy)
 # ------------------------------------------------------------
-def compute_energy_duration(waveform, threshold=0.9):
+def compute_energy_duration(waveform, threshold=0.9, n_baseline=200):
     """
     Returns the number of samples needed to reach `threshold`
-    fraction of total squared energy.
-
-    Parameters
-    ----------
-    waveform : array-like
-        Raw waveform.
-    threshold : float
-        Fraction of total energy to reach (default 0.9).
-
-    Returns
-    -------
-    duration_index : int or NaN
-        First index where cumulative energy reaches threshold.
+    fraction of total baseline-subtracted squared energy.
     """
     y = np.asarray(waveform, dtype=float)
 
-    # Use squared waveform as "energy"
+    # subtract baseline 
+    baseline = np.mean(y[:n_baseline])
+    y = y - baseline
+
+    # squared energy
     energy = y ** 2
     total_energy = float(np.sum(energy))
-    if total_energy == 0:
+    if total_energy <= 0 or not np.isfinite(total_energy):
         return np.nan
 
     cumulative = np.cumsum(energy)
