@@ -2,7 +2,8 @@
 data/*
 !data/.gitkeep
 
-
+# Ignore system files
+.DS_Store
 
 # Ignore HDF5 files anywhere
 *.hdf5
