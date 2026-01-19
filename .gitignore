@@ -11,3 +11,7 @@ data/*
 # Ignore generated images
 graphs/*.png
 graphs/*.jpg
+
+# Ignore large compressed CSV outputs
+*.csv.gz
+extracted_features_csv_files/combined_csv_files/
