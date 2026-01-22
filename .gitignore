@@ -17,10 +17,5 @@ graphs/*.png
 graphs/*.jpg
 
 # Ignore large compressed CSV outputs
-<<<<<<< Updated upstream
-# *.csv.gz
-extracted_features_csv_files/combined_csv_files/*.csv.gz
-=======
 *.csv.gz
-extracted_features_csv_files/combined_csv_files/
->>>>>>> Stashed changes
+extracted_features_csv_files/combined_csv_files/*.csv.gz
