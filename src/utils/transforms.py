@@ -108,7 +108,69 @@ def pole_zero_correction(waveform, use_pz=False):
         # If fitting fails, return original
         return y, y
 
+# ------------------------------------------------------------
+# Pole–Zero Correction (nomin ver)
+# ------------------------------------------------------------
+def pole_zero_correct(waveform, use_pz=False):
+    """
+    this function applies pole-zero 
 
+    Args:
+        raw waveform (np.array)
+    Returns:
+        waveform_pz (np.array): The PZ-corrected full waveform.
+        waveform_tail_corrected (np.array): The PZ-corrected tail portion of the waveform.
+    """
+    waveform = np.asarray(waveform, dtype=float)
+    if not use_pz:
+        return waveform, waveform
+
+    # Identify the peak value
+    peak_value = np.max(waveform)
+    # peak_idx = peak_after_max_slope(waveform)
+    # peak_value = waveform[peak_idx]
+    
+    # Isolate the tail (starting at 98% of the peak)
+    t98 = np.where(waveform >= 0.98 * peak_value)[0][0] 
+    # Generate the time index necessary for the fit (starting at 0 for the fit function)
+    time_index = np.arange(0, len(waveform))
+    tail_time = np.arange(0, time_index[-1] - t98 + 1)
+    tail_values = waveform[t98:]
+
+    p0 = [tail_values[0], 300.0, tail_values[0] * 0.1, 1500.0]
+    # Fit the parameters (with error handling)
+    try:
+        # Fit the decay model to the raw tail values
+        params, params_cov = curve_fit(
+            exponential, 
+            tail_time, 
+            tail_values,
+            p0=p0, 
+            maxfev=20000)
+    except (RuntimeError, ValueError):
+        # If the curve_fit fails to converge (e.g., due to noise or pile-up), 
+        # return a copy of the original waveform to prevent the pipeline from crashing.
+        return np.copy(waveform), waveform[t98:]
+
+    # Calculate the correction factor and apply it
+    f_decay = exponential(tail_time, *params)   
+    # Estimate the initial value of the tail (f_t0) from the first few samples near t98
+    f_t0 = np.mean(waveform[t98:t98+5])
+    # Calculate the inverse correction factor (f_pz). 
+    # This factor, when multiplied by the tail, flattens the exponential decay.
+    with np.errstate(divide='ignore', invalid='ignore'):
+        f_pz = f_t0 / f_decay
+        # Replace Infs/NaNs (where f_decay ~ 0) with 1.0 (no correction)
+        f_pz[~np.isfinite(f_pz)] = 1.0
+        
+    # Apply the correction
+    waveform_tail_corrected = tail_values * f_pz
+    # Create the final corrected waveform
+    waveform_pz = np.copy(waveform)
+    waveform_pz[t98:] = waveform_tail_corrected
+    
+    return waveform_pz, waveform_tail_corrected
+    
 # ------------------------------------------------------------
 # Frequency Spectrum
 # ------------------------------------------------------------

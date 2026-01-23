@@ -17,8 +17,7 @@ def compute_tail_charge_diff(waveform, tp0, use_pz=True, S=50):
     wf = np.asarray(waveform, dtype=float)
 
     # Optional PZ correction
-    if use_pz:
-        wf, _ = pole_zero_correction(wf)
+    wf, _ = pole_zero_correct(wf, use_pz)
 
     # Baseline subtract using pre-tp0 region (safe default)
     pre0 = max(0, tp0 - int(1.0 * S))
@@ -236,8 +235,7 @@ def compute_late_over_early(waveform, tp0, use_pz=True, S=50, eps=1e-6):
     wf = np.asarray(waveform, dtype=float)
 
     # Optional PZ correction
-    if use_pz:
-        wf, _ = pole_zero_correction(wf)
+    wf, _ = pole_zero_correct(wf, use_pz)
 
     # Baseline subtract using pre-tp0 region
     pre0 = max(0, tp0 - int(1.0 * S))
