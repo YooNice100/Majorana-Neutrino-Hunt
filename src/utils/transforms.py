@@ -111,9 +111,9 @@ def pole_zero_correction(waveform, use_pz=False):
 # ------------------------------------------------------------
 # Pole–Zero Correction (nomin ver)
 # ------------------------------------------------------------
-def pole_zero_correct(waveform, use_pz=False):
+def pole_zero_correct(waveform, use_pz=True):
     """
-    this function applies pole-zero 
+    Applies pole-zero correction to a given waveform.
 
     Args:
         raw waveform (np.array)
@@ -126,17 +126,17 @@ def pole_zero_correct(waveform, use_pz=False):
         return waveform, waveform
 
     # Identify the peak value
-    peak_value = np.max(waveform)
     # peak_idx = peak_after_max_slope(waveform)
     # peak_value = waveform[peak_idx]
-    
+    peak_value = np.max(waveform)
     # Isolate the tail (starting at 98% of the peak)
     t98 = np.where(waveform >= 0.98 * peak_value)[0][0] 
-    # Generate the time index necessary for the fit (starting at 0 for the fit function)
+    # Generate the time index necessary for the fit 
     time_index = np.arange(0, len(waveform))
     tail_time = np.arange(0, time_index[-1] - t98 + 1)
     tail_values = waveform[t98:]
 
+    # initial guess
     p0 = [tail_values[0], 300.0, tail_values[0] * 0.1, 1500.0]
     # Fit the parameters (with error handling)
     try:
@@ -157,12 +157,10 @@ def pole_zero_correct(waveform, use_pz=False):
     # Estimate the initial value of the tail (f_t0) from the first few samples near t98
     f_t0 = np.mean(waveform[t98:t98+5])
     # Calculate the inverse correction factor (f_pz). 
-    # This factor, when multiplied by the tail, flattens the exponential decay.
-    with np.errstate(divide='ignore', invalid='ignore'):
-        f_pz = f_t0 / f_decay
-        # Replace Infs/NaNs (where f_decay ~ 0) with 1.0 (no correction)
-        f_pz[~np.isfinite(f_pz)] = 1.0
-        
+    # This factor, when multiplied by the tail, flattens the exponential decay.    
+    eps = 1e-12
+    f_pz = f_t0 / (f_decay + eps)
+  
     # Apply the correction
     waveform_tail_corrected = tail_values * f_pz
     # Create the final corrected waveform
