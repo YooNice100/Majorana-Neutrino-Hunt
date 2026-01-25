@@ -114,46 +114,54 @@ def compute_current_skewness(waveform, tp0_index, S=100):
 def compute_current_width(waveform, tp0, S=100):
     """
     Returns the Full Width at Half Maximum (FWHM) of the PZ-corrected current.
-    
-    Low Value  = Single Site Event (SSE) - Sharp, narrow spike.
-    High Value = Multi Site Event (MSE)  - Broad, sloppy spike.
-    
-    Parameters:
-    - waveform: raw data
-    - tp0: trigger point index
-    - S: sampling rate multiplier (samples per us)
+    Uses Linear Interpolation via np.interp for sub-sample precision.
     """
     wf = np.asarray(waveform, dtype=float)
     
     # 1. PZ Correction 
     base, _ = estimate_baseline(wf)
-    wf = wf - base
-    wf_pz, _ = pole_zero_correction(wf, use_pz=True)
+    wf_pz, _ = pole_zero_correction(wf - base, use_pz=True)
     
-    # 2. Compute Current (Derivative), smooth first
+    # 2. Compute Current (Derivative), smooth first to ensure monotonicity
     wf_smooth = savgol_filter(wf_pz, window_length=15, polyorder=3)
     current = compute_gradient(wf_smooth)
     
     # 3. Focus on the Rise Region
-    # We look from tp0 to 2.0us later
     end = min(len(current), tp0 + int(2.0 * S)) 
     pulse_slice = current[tp0:end]
     
     # 4. Find Max Amplitude
-    max_val = np.max(pulse_slice)
+    if len(pulse_slice) < 3: return 0.0
+    
+    max_idx = np.argmax(pulse_slice)
+    max_val = pulse_slice[max_idx]
+
     if max_val <= 0: return 0.0
     
     half_max = max_val / 2.0
+
+    # 5. Split and Interpolate
+    time_axis = np.arange(len(pulse_slice))
     
-    # 5. Calculate Width (Indices where it crosses half_max)
-    # Find all points above half_max
-    above_threshold = np.where(pulse_slice > half_max)[0]
+    # We go up to max_idx+1 so the peak is the last point of the left side.
+    left_y = pulse_slice[:max_idx+1]
+    left_x = time_axis[:max_idx+1]
     
-    if len(above_threshold) < 2:
-        return 0.0
-        
-    # Width = Last Index - First Index
-    width_samples = above_threshold[-1] - above_threshold[0]
+    right_y = pulse_slice[max_idx:]
+    right_x = time_axis[max_idx:]
     
-    # Return in Microseconds
+    # Left Crossing (Rising Edge)
+    # Note: If noise makes the rise non-monotonic, np.interp picks the first occurrence.
+    if len(left_y) < 2: return 0.0
+    t_left = np.interp(half_max, left_y, left_x)
+    
+    # Right Crossing (Falling Edge)
+    if len(right_y) < 2: return 0.0
+    t_right = np.interp(half_max, right_y[::-1], right_x[::-1])
+    
+    # 6. Calculate Width
+    width_samples = t_right - t_left 
+    
+    if width_samples < 0: return 0.0
+    
     return width_samples / float(S)
