@@ -110,9 +110,9 @@ def compute_spectral_centroid_power(wf):
     return np.sum(xf * power_spectrum) / ps_sum
 
 # ------------------------------------------------------------
-# 6. Total power using power spectrum
+# 6. Total power using power spectrum (log transform)
 # ------------------------------------------------------------
 def compute_total_power(wf):
     xf, power_spectrum = compute_rfft_power_spectrum(wf)
     total_power = np.sum(power_spectrum)
-    return total_power
+    return np.log10(total_power)
