@@ -33,65 +33,6 @@ def exponential(t, a, tau1, b, tau2):
 # ------------------------------------------------------------
 # Pole–Zero Correction 
 # ------------------------------------------------------------
-def pole_zero_correction(waveform, use_pz=False):
-    """
-    Applies pole-zero correction to a given waveform.
-
-    Args:
-        raw waveform (np.array)
-    Returns:
-        waveform_pz (np.array): The PZ-corrected full waveform.
-        waveform_tail_corrected (np.array): The PZ-corrected tail portion of the waveform.
-    """
-    waveform = np.asarray(waveform, dtype=float)
-    if not use_pz:
-        return waveform, waveform
-
-    # Identify the peak values
-    peak_value = np.max(waveform)
-    # Isolate the tail (starting at 98% of the peak)
-    t98 = np.where(waveform >= 0.98 * peak_value)[0][0] 
-    # Generate the time index necessary for the fit 
-    time_index = np.arange(0, len(waveform))
-    tail_time = np.arange(0, time_index[-1] - t98 + 1)
-    tail_values = waveform[t98:]
-
-    # initial guess
-    p0 = [tail_values[0], 300.0, tail_values[0] * 0.1, 1500.0]
-    # Fit the parameters (with error handling)
-    try:
-        # Fit the decay model to the raw tail values
-        params, params_cov = curve_fit(
-            exponential, 
-            tail_time, 
-            tail_values,
-            p0=p0, 
-            maxfev=20000)
-    except (RuntimeError, ValueError):
-        # If the curve_fit fails to converge (e.g., due to noise or pile-up), 
-        # return a copy of the original waveform to prevent the pipeline from crashing.
-        return np.copy(waveform), waveform[t98:]
-
-    # Calculate the correction factor and apply it
-    f_decay = exponential(tail_time, *params)   
-    # Estimate the initial value of the tail (f_t0) from the first few samples near t98
-    f_t0 = np.mean(waveform[t98:t98+5])
-    # Calculate the inverse correction factor (f_pz). 
-    # This factor, when multiplied by the tail, flattens the exponential decay.    
-    eps = 1e-12
-    f_pz = f_t0 / (f_decay + eps)
-  
-    # Apply the correction
-    waveform_tail_corrected = tail_values * f_pz
-    # Create the final corrected waveform
-    waveform_pz = np.copy(waveform)
-    waveform_pz[t98:] = waveform_tail_corrected
-    
-    return waveform_pz, waveform_tail_corrected
-
-
-
-# Eunice new Pole zero correction
 def pole_zero_correction(waveform, use_pz=True, min_tail_len=10):
     """
     Applies pole-zero correction to a given waveform.
