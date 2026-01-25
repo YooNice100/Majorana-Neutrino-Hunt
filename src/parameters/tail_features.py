@@ -5,7 +5,7 @@ from ..utils.transforms import pole_zero_correction, estimate_baseline
 # ------------------------------------------------------------
 # 1. Tail Slope (Normalized by Energy)
 # ------------------------------------------------------------
-def compute_tail_slope(wf, tp0, S=100):
+def compute_tail_slope(wf, tp0, use_pz=True, S=100):
     """
     Calculates the Slope of the PZ tail, normalized by Energy.
     
@@ -14,7 +14,7 @@ def compute_tail_slope(wf, tp0, S=100):
                   0.0  = Flat (Bulk)
                   < 0  = Drooping (Surface/Trapping)
     """
-    wf_pz, _ = pole_zero_correction(wf, use_pz=True)
+    wf_pz, _ = pole_zero_correction(wf, use_pz=use_pz)
     
     # 1. Define the 'Deep Tail' Window
     start_us = 4.0
