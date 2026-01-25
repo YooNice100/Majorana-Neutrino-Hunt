@@ -45,7 +45,7 @@ def compute_tail_slope(wf, tp0, use_pz=True, S=100):
     # slope is now in units of [Normalized_ADC / us] -> [1/us]
     slope, intercept = np.polyfit(time_axis, tail_norm, 1)
     
-    return slope
+    return slope * 1e6
 
 # ------------------------------------------------------------
 # 2. LQ80
