@@ -33,7 +33,7 @@ def exponential(t, a, tau1, b, tau2):
 # ------------------------------------------------------------
 # Pole–Zero Correction 
 # ------------------------------------------------------------
-def pole_zero_correction(waveform, use_pz=False):
+def pole_zero_correct(waveform, use_pz=False):
     """
     Applies pole–zero correction to the waveform tail.
 
@@ -111,7 +111,7 @@ def pole_zero_correction(waveform, use_pz=False):
 # ------------------------------------------------------------
 # Pole–Zero Correction (nomin ver)
 # ------------------------------------------------------------
-def pole_zero_correct(waveform, use_pz=True):
+def pole_zero_correction(waveform, use_pz=True):
     """
     Applies pole-zero correction to a given waveform.
 
@@ -125,9 +125,7 @@ def pole_zero_correct(waveform, use_pz=True):
     if not use_pz:
         return waveform, waveform
 
-    # Identify the peak value
-    # peak_idx = peak_after_max_slope(waveform)
-    # peak_value = waveform[peak_idx]
+    # Identify the peak values
     peak_value = np.max(waveform)
     # Isolate the tail (starting at 98% of the peak)
     t98 = np.where(waveform >= 0.98 * peak_value)[0][0] 
@@ -256,7 +254,8 @@ def compute_rfft_power_spectrum(
 # ------------------------------------------------------------
 # Find index of first peak after the steepest rise
 # ------------------------------------------------------------
-def peak_after_max_slope(wf, tp0, S=50, search_us=8.0):
+def peak_after_max_slope(wf, tp0, S=100, search_us=2.0):
+    # Finds the peak index after the maximum slope following tp0.
     tp0 = int(tp0)
     start = max(tp0, 1)
     end = min(len(wf) - 1, tp0 + int(search_us * S))
@@ -269,6 +268,7 @@ def peak_after_max_slope(wf, tp0, S=50, search_us=8.0):
 
     # search a short window after slope
     peak_start = max_slope_idx
+    # 2.0 microseconds after max slope
     peak_end = min(len(wf), max_slope_idx + int(2.0 * S))
 
     return peak_start + int(np.argmax(wf[peak_start:peak_end]))
