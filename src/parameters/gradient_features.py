@@ -88,7 +88,7 @@ def compute_current_kurtosis(waveform, tp0_index, S=100):
     wf_smooth = savgol_filter(waveform, window_length=15, polyorder=3)
     current_waveform = compute_gradient(wf_smooth)
     # Extract current pulse from tp0 to peak + 2 microseconds
-    end = min(len(current), tp0_index + int(2.0 * S)) 
+    end = min(len(current_waveform), tp0_index + int(2.0 * S)) 
     current_pulse = current_waveform[tp0_index : end]
     current_kurtosis = kurtosis(current_pulse, bias=False)
     return current_kurtosis
@@ -103,7 +103,7 @@ def compute_current_skewness(waveform, tp0_index, S=100):
     wf_smooth = savgol_filter(waveform, window_length=15, polyorder=3)
     current_waveform = compute_gradient(wf_smooth)
     # Extract current pulse from tp0 to peak + 2 microseconds
-    end = min(len(current), tp0_index + int(2.0 * S)) 
+    end = min(len(current_waveform), tp0_index + int(2.0 * S)) 
     current_pulse = current_waveform[tp0_index : end]
     current_skewness = skew(current_pulse, bias=False)
     return current_skewness
