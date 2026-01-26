@@ -16,6 +16,11 @@ __pycache__/
 graphs/*.png
 graphs/*.jpg
 
-# Ignore large compressed CSV outputs
+# Ignore large compressed CSV outputs by default
 *.csv.gz
+
+# Allow this specific test CSV to be tracked
+!extracted_features_csv_files/eunice_csv_files/test_csv/test_all_features.csv.gz
+
+# Still ignore combined CSV outputs
 extracted_features_csv_files/combined_csv_files/*.csv.gz
