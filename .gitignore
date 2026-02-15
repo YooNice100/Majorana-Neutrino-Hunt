@@ -24,3 +24,12 @@ graphs/*.jpg
 
 # Still ignore combined CSV outputs
 extracted_features_csv_files/combined_csv_files/*.csv.gz
+extracted_features_csv_files/prithvi_csv_files/*.csv
+extracted_features_csv_files/prithvi_csv_files/compress_files.ipynb
+extracted_features_csv_files/jade_csv_files/*.csv
+extracted_features_csv_files/eunice_csv_files/train_csv/makegzip.ipynb
+
+# Ignore following files
+project_code.py
+Untitled2.ipynb
+notebooks/
