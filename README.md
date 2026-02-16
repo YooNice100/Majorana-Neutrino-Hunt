@@ -1,4 +1,4 @@
-# Majorana Neutrino Hunt — Quarter 1 Checkpoint
+# Majorana Neutrino Hunt
 
 ## Overview
 This repository contains the code for our DSC 180A Quarter 1 Capstone Project at UCSD. We are analyzing digitized high-purity germanium (HPGe) detector waveforms from the [Majorana Demonstrator Data Release](https://zenodo.org/records/8257027).
@@ -17,6 +17,7 @@ The project is organized into modular source code to ensure reproducibility:
     * `parameters/`: Feature extraction logic (Time & Frequency domain).
     * `utils/`: Helper functions for I/O, stats, and plotting.
 * `Dockerfile`: Instructions for building the project container.
+* README.md
 * `requirements.txt`: List of Python dependencies and versions.
 
 ---
