@@ -11,6 +11,7 @@ The primary goal is to identify and engineer new waveform parameters that can ef
 The project is organized into modular source code to ensure reproducibility:
 
 * `data/`: Stores the HDF5 datasets (ignored by Git).
+* `extracted_features_csv_files`: Contains the feature-engineered datasets and the core Jupyter Notebooks containing the training logic, hyperparameter tuning, and final performance evaluations for all models.
 * `graphs/`: Output directory for feature histograms and plots.
 * `src/`: Source code modules.
     * `experiments/`: Main execution scripts (e.g., `exp_all.py`).
@@ -45,10 +46,12 @@ We implement a pipeline to load raw waveforms, apply necessary masks (SSE vs. MS
 * **ND80:** Normalized difference at 80% rise time.
 * **TFR:** How much the waveform’s tail is flattened by PZ correction.
 * **TCD:** A ratio measuring charge stability between early and late waveform tail regions.
+* **Tail Slope:** Linear decay rate of the waveform tail
 
 **Gradient Features:**
 * **Current Skewness:** Asymmetry of gradient waveform between tp0 and peak.
 * **Current Kurtosis:** Peakedness of gradient waveform.
+* **Current Width:** Temporal width of the gradient waveform near its maximum.
 * **Peak Count:** Number of significant local maxima in gradient waveform.
 * **Gradient Baseline Noise:** how noisy the baseline of gradient waveform.
 
