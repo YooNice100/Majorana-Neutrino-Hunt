@@ -28,6 +28,7 @@ extracted_features_csv_files/prithvi_csv_files/*.csv
 extracted_features_csv_files/prithvi_csv_files/compress_files.ipynb
 extracted_features_csv_files/jade_csv_files/*.csv
 extracted_features_csv_files/eunice_csv_files/train_csv/makegzip.ipynb
+src/experiments/extract_my_params.ipynb
 
 # Ignore following files
 project_code.py
