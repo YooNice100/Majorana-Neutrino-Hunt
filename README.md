@@ -11,7 +11,7 @@ The primary goal is to identify and engineer new waveform parameters that can ef
 The project is organized into modular source code to ensure reproducibility:
 
 * `data/`: Stores the HDF5 datasets (ignored by Git).
-* `extracted_features_csv_files/`: Contains the feature-engineered datasets and the core Jupyter Notebooks containing the training logic, hyperparameter tuning, and final performance evaluations for all models.
+* `extracted_features_csv_files`: Contains the feature-engineered datasets and the core Jupyter Notebooks containing the training logic, hyperparameter tuning, and final performance evaluations for all models.
 * `graphs/`: Output directory for feature histograms and plots.
 * `src/`: Source code modules.
     * `experiments/`: Main execution scripts (e.g., `exp_all.py`).
