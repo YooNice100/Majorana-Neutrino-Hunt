@@ -3,6 +3,7 @@ import pandas as pd
 
 
 def process_and_merge_features(
+    labels_path,
     eunice_path,
     nomin_path,
     prithvi_path,
@@ -10,27 +11,30 @@ def process_and_merge_features(
     output_path
 ):
 
-    print("=" * 60)
-    print("Loading feature files...")
-    print("=" * 60)
+    print("=" * 50)
+    print("Loading Files...")
+    print("=" * 50)
 
-    eunice = pd.read_csv(eunice_path)
-    nomin = pd.read_csv(nomin_path)   # contains labels
-    prithvi = pd.read_csv(prithvi_path)
-    jade = pd.read_csv(jade_path)
+    labels = pd.read_csv(labels_path)
+    e = pd.read_csv(eunice_path)
+    n = pd.read_csv(nomin_path)
+    p = pd.read_csv(prithvi_path)
+    j = pd.read_csv(jade_path)
 
-    print("Eunice:", eunice.shape)
-    print("Nomin:", nomin.shape)
-    print("Prithvi:", prithvi.shape)
-    print("Jade:", jade.shape)
+    print("Labels:", labels.shape)
+    print("Eunice:", e.shape)
+    print("Nomin:", n.shape)
+    print("Prithvi:", p.shape)
+    print("Jade:", j.shape)
 
     print("\nMerging datasets...")
 
     merged = (
-        nomin
-        .merge(eunice, on="id", how="inner")
-        .merge(prithvi, on="id", how="inner")
-        .merge(jade, on="id", how="inner")
+        labels
+        .merge(e, on="id", how="inner")
+        .merge(n, on="id", how="inner")
+        .merge(p, on="id", how="inner")
+        .merge(j, on="id", how="inner")
     )
 
     print("Final merged shape:", merged.shape)
@@ -41,15 +45,14 @@ def process_and_merge_features(
 
     print("Saved:", output_path)
 
-    return merged
-
 
 def main():
 
     print("\nBuilding combined datasets...\n")
 
-    # TRAIN
+    # TRAIN DATASET
     process_and_merge_features(
+        labels_path="feature_inputs/labels_train.csv",
         eunice_path="feature_inputs/eunice_train_all_features.csv.gz",
         nomin_path="feature_inputs/nomin_combined_train_n.csv.gz",
         prithvi_path="feature_inputs/prithvi_train_2.csv.gz",
@@ -57,8 +60,9 @@ def main():
         output_path="data/combined_train_with_labels.csv.gz"
     )
 
-    # TEST
+    # TEST DATASET
     process_and_merge_features(
+        labels_path="feature_inputs/labels_test.csv",
         eunice_path="feature_inputs/eunice_test_all_features.csv.gz",
         nomin_path="feature_inputs/nomin_combined_test_n.csv.gz",
         prithvi_path="feature_inputs/prithvi_test_2.csv.gz",
@@ -66,7 +70,7 @@ def main():
         output_path="data/combined_test_with_labels.csv.gz"
     )
 
-    print("\nDataset build complete.")
+    print("\nDone building datasets.")
 
 
 if __name__ == "__main__":
