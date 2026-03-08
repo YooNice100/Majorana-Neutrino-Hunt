@@ -20,7 +20,7 @@ from src.utils.plots import (
     plot_hist_current_kurtosis,
     plot_hist_current_skewness,
     plot_hist_spectral_centroid_power,
-    plot_hist_tail_charge_diff,
+    # plot_hist_tail_charge_diff,
     plot_hist_time_to_peak,
     plot_hist_total_power
 )
@@ -30,7 +30,7 @@ from src.parameters.tail_features import (
     compute_LQ80, 
     compute_ND80, 
     compute_tfr,
-    compute_tail_charge_diff
+    # compute_tail_charge_diff
 )
 from src.parameters.time_domain import (
     compute_peak_width_25_75,
@@ -87,7 +87,7 @@ drift_50 = []
 peak_freq = []
 spec_centroid = []
 spec_centroid_power = []
-tail_charge_diff = []
+# tail_charge_diff = []
 time_to_peak = []
 total_power = []
 current_skew = []
@@ -127,7 +127,7 @@ for i, wf in enumerate(waveforms):
     total_power.append(compute_total_power(wf))
 
     # --- Tail charge difference ---
-    tail_charge_diff.append(compute_tail_charge_diff(wf, tp0_true))
+    # tail_charge_diff.append(compute_tail_charge_diff(wf, tp0_true))
 
     # --- Time to peak ---
     time_to_peak.append(compute_time_to_peak(wf, tp0_true))
@@ -147,7 +147,7 @@ drift_50 = np.array(drift_50)
 peak_freq = np.array(peak_freq)
 spec_centroid = np.array(spec_centroid)
 spec_centroid_power = np.array(spec_centroid_power)
-tail_charge_diff = np.array(tail_charge_diff)
+# tail_charge_diff = np.array(tail_charge_diff)
 time_to_peak = np.array(time_to_peak)
 total_power = np.array(total_power)
 current_kurt = np.array(current_kurt)
@@ -193,7 +193,7 @@ ttest("Spectral Centroid", spec_centroid[sse], spec_centroid[mse])
 ttest("AvsE", avse[sse], avse[mse])
 ttest("HFER", hfer_vals[sse], hfer_vals[mse])
 ttest("Spectral Centroid Power", spec_centroid_power[sse], spec_centroid_power[mse])
-ttest("Tail Charge Difference", tail_charge_diff[sse], tail_charge_diff[mse])
+# ttest("Tail Charge Difference", tail_charge_diff[sse], tail_charge_diff[mse])
 ttest("Time to Peak", time_to_peak[sse], time_to_peak[mse])
 ttest("Total Power", total_power[sse], total_power[mse])
 ttest("Current Skewness", current_skew[sse], current_skew[mse])
@@ -212,7 +212,7 @@ plot_hist_spectral_centroid(spec_centroid[sse], spec_centroid[mse], f"{OUT_DIR}/
 plot_hist_avse(avse[sse], avse[mse], f"{OUT_DIR}/avse_hist.png")
 plot_hist_hfer(hfer_vals[sse], hfer_vals[mse], f"{OUT_DIR}/hfer_hist.png")
 plot_hist_spectral_centroid_power(spec_centroid_power[sse], spec_centroid_power[mse], f"{OUT_DIR}/spectral_centroid_power_hist.png")
-plot_hist_tail_charge_diff(tail_charge_diff[sse], tail_charge_diff[mse], f"{OUT_DIR}/tail_charge_diff_hist.png")
+# plot_hist_tail_charge_diff(tail_charge_diff[sse], tail_charge_diff[mse], f"{OUT_DIR}/tail_charge_diff_hist.png")
 plot_hist_time_to_peak(time_to_peak[sse], time_to_peak[mse], f"{OUT_DIR}/time_to_peak_hist.png")
 plot_hist_total_power(total_power[sse], total_power[mse], f"{OUT_DIR}/total_power_hist.png")
 plot_hist_current_kurtosis(current_kurt[sse], current_kurt[mse], f"{OUT_DIR}/current_kurtosis_hist.png")

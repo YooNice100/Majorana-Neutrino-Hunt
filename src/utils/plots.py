@@ -15,7 +15,7 @@ from ..parameters.frequency_domain import (
     compute_peak_frequency,
     compute_spectral_centroid,
 )
-from ..parameters.misc import compute_PPR
+# from ..parameters.misc import compute_PPR
 
 from ..utils.transforms import pole_zero_correction, estimate_baseline
 
