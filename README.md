@@ -68,7 +68,9 @@ These datasets are used by the automated pipeline to build the final training an
 Our Docker container is configured to automatically run the entire pipeline sequentially. You only need to run one command to execute the data processing, model training, NPML predictions, and plot generation.
 
 **Execute the pipeline:**
-`docker run majorana-pipeline`
+```bash
+docker run majorana-pipeline
+```
 
 *(Note: The `Dockerfile` handles the sequential execution of `build_combined_dataset.py`, `run_classification.py`, `run_regression.py`, `run_npml_pipeline.py`, and the visualization scripts).*
 
