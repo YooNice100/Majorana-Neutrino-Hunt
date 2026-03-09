@@ -32,11 +32,14 @@ Ensure you have Docker Desktop installed and running, then build the image:
 ```bash
 docker build -t majorana .
 ```
+*(Note: Building the Docker image may take several minutes the first time as dependencies are installed).*
 
 **3. Run the pipeline:**
 ```bash
 docker run majorana
 ```
+*(Note: Running the full pipeline may take several minutes depending on system performance).*
+
 ---
 
 ## Dataset
