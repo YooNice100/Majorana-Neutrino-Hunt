@@ -41,49 +41,22 @@ These datasets are used by the automated pipeline to build the final training an
 
 ## Project Structure
 
-Majorana-Neutrino-Hunt/
-├── .gitignore
-├── Dockerfile
-├── README.md
-├── requirements.txt
-├── data/
-│   └── .gitkeep
-└── src/
-    ├── __init__.py
-    ├── data/
-    │   └── build_combined_dataset.py
-    ├── feature_inputs/
-    │   ├── npml/
-    │   ├── test/
-    │   └── train/
-    ├── graphs/
-    │   └── .gitkeep
-    ├── models/
-    │   ├── run_classification.py
-    │   ├── run_npml_pipeline.py
-    │   └── run_regression.py
-    ├── notebooks/
-    │   ├── classification_dcr.ipynb
-    │   ├── classification_high_avse.ipynb
-    │   ├── classification_low_avse.ipynb
-    │   ├── classification_lq.ipynb
-    │   ├── regression_lightgbm.ipynb
-    │   └── regression_xgboost.ipynb
-    ├── parameters/
-    │   ├── __init__.py
-    │   ├── frequency_domain.py
-    │   ├── gradient_features.py
-    │   ├── tail_features.py
-    │   ├── time_domain.py
-    │   └── transforms.py
-    ├── results/
-    │   ├── .gitkeep
-    │   ├── classification_metrics.csv
-    │   └── combined_classification_predictions.csv
-    └── visualization/
-        ├── generate_npml_plots.py
-        └── generate_plots.py
-
+* `.dockerignore`: Docker ignore rules.
+* `.gitignore`: Git ignore rules.
+* `Dockerfile`: Instructions for building the project container.
+* `README.md`: Project documentation.
+* `requirements.txt`: List of Python dependencies and versions.
+* `data/`: Directory for raw datasets (ignored by Git).
+* `src/`: Core source code modules.
+    * `__init__.py`: Source package initialization.
+    * `data/`: Data processing scripts (`build_combined_dataset.py`).
+    * `feature_inputs/`: Pre-extracted feature datasets divided into `npml/`, `test/`, and `train/` subdirectories.
+    * `graphs/`: Output directory for generated plots.
+    * `models/`: Execution scripts for models (`run_classification.py`, `run_npml_pipeline.py`, `run_regression.py`).
+    * `notebooks/`: Development and exploratory Jupyter notebooks containing training logic and evaluations for classification and regression.
+    * `parameters/`: Feature extraction logic (`frequency_domain.py`, `gradient_features.py`, `tail_features.py`, `time_domain.py`, `transforms.py`).
+    * `results/`: Output directory for model metrics and prediction CSVs (`classification_metrics.csv`, `combined_classification_predictions.csv`).
+    * `visualization/`: Plot generation scripts (`generate_npml_plots.py`, `generate_plots.py`).
 ---
 
 ## Running the Experiments
