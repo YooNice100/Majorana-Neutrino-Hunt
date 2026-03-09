@@ -20,12 +20,16 @@ Our pipeline performs the following tasks:
 To ensure complete reproducibility, this project is packaged using Docker. This guarantees that all dependencies (Python 3.11, pandas 2.2.3, scikit-learn 1.6.1, xgboost 3.1.2, lightgbm 4.6.0, etc.) are installed with their exact versions.
 
 **1. Clone the repository:**
-`git clone https://github.com/YooNice100/Majorana-Neutrino-Hunt.git`
-`cd Majorana-Neutrino-Hunt`
+```bash
+git clone https://github.com/YooNice100/Majorana-Neutrino-Hunt.git
+cd Majorana-Neutrino-Hunt
+```
 
 **2. Build the Docker Image:**
 Ensure you have Docker Desktop installed and running, then build the image:
-`docker build -t majorana-pipeline .`
+```bash
+docker build -t majorana-pipeline .
+```
 
 ---
 
