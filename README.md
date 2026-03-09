@@ -2,8 +2,8 @@
 
 ## Overview
 
-This repository contains the code for our **DSC 180B Capstone Project at UC San Diego**.  
-The goal of this project is to use machine learning to analyze waveform data from the **Majorana Demonstrator experiment** and identify characteristics of particle interactions in high-purity germanium detectors.
+This repository contains the code for our DSC 180B Capstone Project at UC San Diego.  
+The goal of this project is to use machine learning to analyze waveform data from the Majorana Demonstrator experiment and identify characteristics of particle interactions in high-purity germanium detectors.
 
 Our pipeline performs the following tasks:
 
@@ -77,11 +77,18 @@ After the Docker container finishes running the pipeline, it will produce the fo
 **Model Metrics & Predictions:**
 * `src/results/classification_metrics.csv`
 * `src/results/combined_classification_predictions.csv`
+* `src/results/npml_predictions.csv`
+* `src/results/regression_metrics.csv`
+* `src/results/regression_predictions.csv`
 
 **Visualizations:**
 * `src/graphs/energy_spectrum_all_events.png`
 * `src/graphs/energy_spectrum_after_psd_cut.png`
-* `src/graphs/npml_energy_spectrum.png`
+* `src/graphs/npml_lgb_all.png`
+* `src/graphs/npml_lgb_psd_cut.png`
+* `src/graphs/npml_xgb_all.png`
+* `src/graphs/npml_xgb_psd_cut.png`
+
 
 ---
 
