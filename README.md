@@ -1,121 +1,152 @@
 # Majorana Neutrino Hunt
 
 ## Overview
-This repository contains the code for our DSC 180A Quarter 1 Capstone Project at UCSD. We are analyzing digitized high-purity germanium (HPGe) detector waveforms from the [Majorana Demonstrator Data Release](https://zenodo.org/records/8257027).
 
-The primary goal is to identify and engineer new waveform parameters that can effectively separate **single-site events (SSE)** from **multi-site events (MSE)**. This project implements a modular pipeline to extract features in both the time and frequency domains.
+This repository contains the code for our **DSC 180B Capstone Project at UC San Diego**.  
+The goal of this project is to use machine learning to analyze waveform data from the **Majorana Demonstrator experiment** and identify characteristics of particle interactions in high-purity germanium detectors.
+
+Our pipeline performs the following tasks:
+
+1. Combine extracted waveform features into training datasets.
+2. Train classification models to identify event labels.
+3. Train regression models to predict event energy.
+4. Apply trained models to the NPML dataset.
+5. Generate energy spectrum visualizations.
+
+---
+
+## Installation
+
+**1. Clone the repository:**
+`git clone https://github.com/YooNice100/Majorana-Neutrino-Hunt.git`
+`cd Majorana-Neutrino-Hunt`
+
+**2. Install dependencies:**
+`pip install -r requirements.txt`
+
+### Environment
+This project was developed with Python 3.11 and the following core libraries:
+* `pandas==2.2.3`
+* `numpy==2.2.0`
+* `scikit-learn==1.6.1`
+* `scipy==1.15.1`
+* `xgboost==3.1.2`
+* `lightgbm==4.6.0`
+* `matplotlib==3.9.3`
+
+---
+
+## Dataset
+
+The raw waveform datasets are too large to store in the repository. Instead, this repository contains pre-extracted feature inputs located in:
+
+`src/feature_inputs/`
+
+These datasets are used to build the final training and testing datasets for the models.
 
 ---
 
 ## Project Structure
-The project is organized into modular source code to ensure reproducibility:
 
-* `data/`: Stores the HDF5 datasets (ignored by Git).
-* `extracted_features_csv_files`: Contains the feature-engineered datasets and the core Jupyter Notebooks containing the training logic, hyperparameter tuning, and final performance evaluations for all models.
-* `graphs/`: Output directory for feature histograms and plots.
-* `src/`: Source code modules.
-    * `experiments/`: Main execution scripts (e.g., `exp_all.py`).
-    * `parameters/`: Feature extraction logic (Time & Frequency domain).
-    * `utils/`: Helper functions for I/O, stats, and plotting.
-* `Dockerfile`: Instructions for building the project container.
-* README.md
-* `requirements.txt`: List of Python dependencies and versions.
-
----
-
-## Methodology & Features
-We implement a pipeline to load raw waveforms, apply necessary masks (SSE vs. MSE), and compute the following features:
-
-**Time Domain:**
-* **Peak Width:** Width of the pulse between 25% and 75% height.
-* **Energy Duration:** Window duration containing significant energy.
-* **Drift Time:** Time from threshold trigger (tp0) to 50% max height.
-* **AvsE:** Comparison of max current Amplitude vs. Energy.
-* **Time to Peak:** Duration between the pulse start (tp0) and the waveform’s maximum amplitude.
-
-**Frequency Domain:**
-* **Peak Frequency:** The frequency with the highest magnitude.
-* **Spectral Centroid (Weighted):** The center of mass of the amplitude spectrum.
-* **HFER:** High-Frequency Energy Ratio.
-* **Spectral Centroid (Power):** The center of mass of the power spectrum.
-* **Band Power Ratio:** The ratio of high‑frequency power to low‑frequency power in a waveform.
-* **Total Power:** Sum of all spectral power components.
-
-**Tail Features:**
-* **LQ80:** A shape parameter requiring pole-zero correction.
-* **ND80:** Normalized difference at 80% rise time.
-* **TFR:** How much the waveform’s tail is flattened by PZ correction.
-* **TCD:** A ratio measuring charge stability between early and late waveform tail regions.
-* **Tail Slope:** Linear decay rate of the waveform tail
-
-**Gradient Features:**
-* **Current Skewness:** Asymmetry of gradient waveform between tp0 and peak.
-* **Current Kurtosis:** Peakedness of gradient waveform.
-* **Current Width:** Temporal width of the gradient waveform near its maximum.
-* **Peak Count:** Number of significant local maxima in gradient waveform.
-* **Gradient Baseline Noise:** how noisy the baseline of gradient waveform.
-
----
-
-## Getting Started
-
-### 1. Data Setup
-This project requires a large data file that is **not** included in the repository due to size constraints.
-
-1.  Navigate to the Zenodo data release page: [https://zenodo.org/records/8257027](https://zenodo.org/records/8257027)
-2.  Download the file named **`MJD_Train_2.hdf5`**.
-3.  Place it inside the `data/` folder in the root directory:
-    ```text
-    /Majorana-Neutrino-Hunt
+Majorana-Neutrino-Hunt/
+├── .gitignore
+├── Dockerfile
+├── README.md
+├── requirements.txt
+├── data/
+│   └── .gitkeep
+└── src/
+    ├── __init__.py
     ├── data/
-    │   └── MJD_Train_2.hdf5
-    ```
-
-### 2. Running the Analysis
-You can run this project using a local Python environment **OR** using Docker (recommended for reproducibility).
-
-#### Option A: Docker (Recommended)
-Ensure you have Docker Desktop installed.
-
-1.  **Build the Image:**
-    ```bash
-    docker build -t majorana-hunt .
-    ```
-
-2.  **Run the Container:**
-    Use the following command to run the analysis and save the resulting graphs to your local machine:
-    ```bash
-    docker run -v $(pwd)/graphs:/app/graphs majorana-hunt
-    ```
-    *Note: The `-v` flag mounts your local `graphs/` folder to the container, ensuring plots are saved to your machine before the container exits.*
-
-#### Option B: Local Python Environment
-Ensure you have Python 3.11 installed.
-
-1.  **Install Dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-2.  **Run the Experiment:**
-    Execute the module from the root directory:
-    ```bash
-    python -m src.experiments.exp_all
-    ```
+    │   └── build_combined_dataset.py
+    ├── feature_inputs/
+    │   ├── npml/
+    │   ├── test/
+    │   └── train/
+    ├── graphs/
+    │   └── .gitkeep
+    ├── models/
+    │   ├── run_classification.py
+    │   ├── run_npml_pipeline.py
+    │   └── run_regression.py
+    ├── notebooks/
+    │   ├── classification_dcr.ipynb
+    │   ├── classification_high_avse.ipynb
+    │   ├── classification_low_avse.ipynb
+    │   ├── classification_lq.ipynb
+    │   ├── regression_lightgbm.ipynb
+    │   └── regression_xgboost.ipynb
+    ├── parameters/
+    │   ├── __init__.py
+    │   ├── frequency_domain.py
+    │   ├── gradient_features.py
+    │   ├── tail_features.py
+    │   ├── time_domain.py
+    │   └── transforms.py
+    ├── results/
+    │   ├── .gitkeep
+    │   ├── classification_metrics.csv
+    │   └── combined_classification_predictions.csv
+    └── visualization/
+        ├── generate_npml_plots.py
+        └── generate_plots.py
 
 ---
 
-## Outputs
-Upon execution, the script produces:
+## Running the Pipeline
 
-1.  **Console Stats:** T-statistics and P-values for each feature (comparing SSE vs. MSE distributions) are printed to the console to verify statistical significance.
-2.  **Visualizations:** Histograms for every feature are automatically saved to the `graphs/` directory (e.g., `graphs/LQ80_hist.png`, `graphs/avse_hist.png`).
+You can run this project either using Docker for full automation or locally step-by-step.
+
+### Method 1: Using Docker (Recommended)
+Our Docker container is configured to automatically run the entire pipeline from dataset creation to final plot generation.
+
+**1. Build the image:**
+`docker build -t majorana-pipeline .`
+
+**2. Run the pipeline:**
+`docker run majorana-pipeline`
+
+### Method 2: Local Python Environment
+If you prefer to run the scripts individually, execute them from the root directory in the following order:
+
+**Step 1: Build the Combined Dataset**
+`python src/data/build_combined_dataset.py`
+
+**Step 2: Train Classification Models**
+`python src/models/run_classification.py`
+
+**Step 3: Train Regression Models**
+`python src/models/run_regression.py`
+
+**Step 4: Run NPML Prediction Pipeline**
+`python src/models/run_npml_pipeline.py`
+
+**Step 5: Generate Visualizations**
+`python src/visualization/generate_plots.py`
+`python src/visualization/generate_npml_plots.py`
+
+---
+
+## Expected Outputs
+
+After running the full pipeline, you should see the following files generated in their respective directories. If these files already exist, running the pipeline again will overwrite them with newly generated results.
+
+**Model Metrics & Predictions:**
+* `src/results/classification_metrics.csv`
+* `src/results/combined_classification_predictions.csv`
+
+**Visualizations:**
+* `src/graphs/energy_spectrum_all_events.png`
+* `src/graphs/energy_spectrum_after_psd_cut.png`
+* `src/graphs/npml_energy_spectrum.png`
+
 
 ---
 
 ## Contributors
+
+* Eunice Cho
 * Nomin Batrigal
 * Prithvi Kochhar
 * Jade Choi
-* Eunice Cho
 * Aobo Li

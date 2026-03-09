@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+
+# Python cache
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Large raw data
+data/
+data/old/
+
+# Feature input datasets
+src/feature_inputs/
+
+# Generated outputs
+src/results/
+src/graphs/
+
+# notebooks
+src/notebooks/
+
+# local work
+eunicenotebooks/
+Untitled2*.ipynb
+project_code.py
+
+# OS files
+.DS_Store
+Thumbs.db
