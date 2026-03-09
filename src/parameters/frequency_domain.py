@@ -1,5 +1,5 @@
 import numpy as np
-from src.utils.transforms import compute_frequency_spectrum, compute_rfft_power_spectrum
+from .transforms import compute_frequency_spectrum, compute_rfft_power_spectrum
 
 # ------------------------------------------------------------
 # 1. Peak frequency

@@ -1,5 +1,5 @@
 import numpy as np
-from ..utils.transforms import estimate_baseline, peak_after_max_slope
+from .transforms import estimate_baseline, peak_after_max_slope
 from scipy.interpolate import interp1d
 
 # ------------------------------------------------------------
