@@ -5,13 +5,15 @@
 This repository contains the code for our DSC 180B Capstone Project at UC San Diego.  
 The goal of this project is to use machine learning to analyze waveform data from the Majorana Demonstrator experiment and identify characteristics of particle interactions in high-purity germanium detectors.
 
-Our pipeline performs the following tasks:
+## Pipeline Summary
 
-1. Combine extracted waveform features into training datasets.
-2. Train classification models to identify event labels.
-3. Train regression models to predict event energy.
-4. Apply trained models to the NPML dataset.
-5. Generate energy spectrum visualizations.
+The Docker container executes the following scripts sequentially:
+
+1. `build_combined_dataset.py` – merges extracted feature datasets into final training and test datasets.
+2. `run_classification.py` – trains classification models to predict event labels.
+3. `run_regression.py` – trains regression models to predict event energy.
+4. `run_npml_pipeline.py` – applies trained models to the NPML dataset.
+5. `generate_plots.py` and `generate_npml_plots.py` – produce energy spectrum visualizations.
 
 ---
 
@@ -28,14 +30,18 @@ cd Majorana-Neutrino-Hunt
 **2. Build the Docker Image:**
 Ensure you have Docker Desktop installed and running, then build the image:
 ```bash
-docker build -t majorana-pipeline .
+docker build -t majorana .
 ```
 
+**3. Run the pipeline:**
+```bash
+docker run majorana
+```
 ---
 
 ## Dataset
 
-The raw waveform datasets are too large to store in the repository. Instead, this repository contains pre-extracted feature inputs located in:
+The raw waveform datasets are too large to store in the repository. Instead, this repository contains pre-extracted feature datasets located in:
 
 `src/feature_inputs/`
 
@@ -69,7 +75,7 @@ Our Docker container is configured to automatically run the entire pipeline sequ
 
 **Execute the pipeline:**
 ```bash
-docker run majorana-pipeline
+docker run majorana
 ```
 
 *(Note: The `Dockerfile` handles the sequential execution of `build_combined_dataset.py`, `run_classification.py`, `run_regression.py`, `run_npml_pipeline.py`, and the visualization scripts).*
@@ -78,7 +84,8 @@ docker run majorana-pipeline
 
 ## Expected Outputs
 
-After the Docker container finishes running the pipeline, it will produce the following outputs in their respective directories:
+After the Docker container finishes running the pipeline, it will produce the following outputs in their respective directories.  
+If these files already exist, running the pipeline again will overwrite them with newly generated results.
 
 **Model Metrics & Predictions:**
 * `src/results/classification_metrics.csv`
