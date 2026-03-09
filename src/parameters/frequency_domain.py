@@ -18,7 +18,8 @@ def compute_peak_frequency(waveform, sample_spacing=1.0):
 # ------------------------------------------------------------
 # 2. Spectral centroid
 # ------------------------------------------------------------
-def compute_spectral_centroid(waveform, sample_spacing=1.0):
+def compute_SCA(waveform, sample_spacing=1.0):
+
     freqs, amp = compute_frequency_spectrum(waveform, sample_spacing)
 
     total_amp = np.sum(amp)

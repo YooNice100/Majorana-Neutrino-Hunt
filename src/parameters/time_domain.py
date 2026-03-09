@@ -5,32 +5,13 @@ from scipy.interpolate import interp1d
 # ------------------------------------------------------------
 # 1. Peak width between 25 percent and 75 percent of max
 # ------------------------------------------------------------
-def compute_peak_width_25_75(waveform):
-    """
-    Computes the width (in samples) between:
-      - first crossing of 25 percent of peak
-      - last crossing of 75 percent of peak
+def compute_HWP(waveform):
 
-    Parameters
-    ----------
-    waveform : array-like
-        Raw waveform.
-
-    Returns
-    -------
-    width : float
-        Number of samples between 25 percent and 75 percent crossings.
-        NaN if the waveform never reaches required thresholds.
-    left_idx : int or None
-        First sample >= 25 percent peak.
-    right_idx : int or None
-        Last sample >= 75 percent peak.
-    """
     y = np.asarray(waveform, dtype=float)
 
     peak_val = float(np.max(y))
     if peak_val <= 0:
-        return np.nan, None, None
+        return np.nan
 
     level25 = 0.25 * peak_val
     level75 = 0.75 * peak_val
@@ -39,16 +20,16 @@ def compute_peak_width_25_75(waveform):
     above_75 = np.where(y >= level75)[0]
 
     if len(above_25) == 0 or len(above_75) == 0:
-        return np.nan, None, None
+        return np.nan
 
     left_idx = int(above_25[0])
     right_idx = int(above_75[-1])
 
     width = right_idx - left_idx
     if width < 0:
-        return np.nan, left_idx, right_idx
+        return np.nan
 
-    return float(width), left_idx, right_idx
+    return float(width)
 
 
 
