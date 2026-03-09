@@ -17,10 +17,10 @@ print("\nStarting NPML pipeline...")
 # Load NPML feature files
 # -------------------------
 
-eunice = pd.read_csv("feature_inputs/npml/eunice_combined_npml.csv.gz")
-nomin = pd.read_csv("feature_inputs/npml/nomin_combined_npml_n.csv.gz")
-prithvi = pd.read_csv("feature_inputs/npml/prithvi_combined_npml.csv.gz")
-jade = pd.read_csv("feature_inputs/npml/jade_npml_features.csv")
+eunice = pd.read_csv("src/feature_inputs/npml/eunice_combined_npml.csv.gz")
+nomin = pd.read_csv("src/feature_inputs/npml/nomin_combined_npml_n.csv.gz")
+prithvi = pd.read_csv("src/feature_inputs/npml/prithvi_combined_npml.csv.gz")
+jade = pd.read_csv("src/feature_inputs/npml/jade_npml_features.csv")
 
 print("Feature shapes:")
 print(eunice.shape, nomin.shape, prithvi.shape, jade.shape)
