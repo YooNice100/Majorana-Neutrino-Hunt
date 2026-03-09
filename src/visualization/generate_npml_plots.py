@@ -5,13 +5,13 @@ import os
 
 print("\nGenerating NPML plots...")
 
-os.makedirs("graphs", exist_ok=True)
+os.makedirs("src/graphs", exist_ok=True)
 
 # -------------------------
 # Load predictions
 # -------------------------
 
-pred_df = pd.read_csv("results/npml_predictions.csv")
+pred_df = pd.read_csv("src/results/npml_predictions.csv")
 
 print("Loaded NPML predictions:", pred_df.shape)
 
@@ -37,10 +37,10 @@ plt.title("NPML Energy Spectrum (LightGBM)")
 plt.legend()
 plt.tight_layout()
 
-plt.savefig("graphs/npml_lgb_all.png")
+plt.savefig("src/graphs/npml_lgb_all.png")
 plt.close()
 
-print("Saved graphs/npml_lgb_all.png")
+print("Saved src/graphs/npml_lgb_all.png")
 
 # -------------------------
 # LightGBM - PSD Cut
@@ -64,10 +64,10 @@ plt.title("NPML Energy Spectrum (LightGBM - PSD Cut)")
 plt.legend()
 plt.tight_layout()
 
-plt.savefig("graphs/npml_lgb_psd_cut.png")
+plt.savefig("src/graphs/npml_lgb_psd_cut.png")
 plt.close()
 
-print("Saved graphs/npml_lgb_psd_cut.png")
+print("Saved src/graphs/npml_lgb_psd_cut.png")
 
 # -------------------------
 # XGBoost - All Events
@@ -89,10 +89,10 @@ plt.title("NPML Energy Spectrum (XGBoost)")
 plt.legend()
 plt.tight_layout()
 
-plt.savefig("graphs/npml_xgb_all.png")
+plt.savefig("src/graphs/npml_xgb_all.png")
 plt.close()
 
-print("Saved graphs/npml_xgb_all.png")
+print("Saved src/graphs/npml_xgb_all.png")
 
 # -------------------------
 # XGBoost - PSD Cut
@@ -116,9 +116,9 @@ plt.title("NPML Energy Spectrum (XGBoost - PSD Cut)")
 plt.legend()
 plt.tight_layout()
 
-plt.savefig("graphs/npml_xgb_psd_cut.png")
+plt.savefig("src/graphs/npml_xgb_psd_cut.png")
 plt.close()
 
-print("Saved graphs/npml_xgb_psd_cut.png")
+print("Saved src/graphs/npml_xgb_psd_cut.png")
 
 print("\nNPML plots complete.")

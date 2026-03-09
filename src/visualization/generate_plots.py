@@ -6,9 +6,9 @@ print("\nStarting visualization...")
 
 # load data
 
-df_test = pd.read_csv("data/combined_test_with_labels.csv.gz")
-reg_preds = pd.read_csv("results/regression_predictions.csv")
-class_preds = pd.read_csv("results/combined_classification_predictions.csv")
+df_test = pd.read_csv("src/data/combined_test_with_labels.csv.gz")
+reg_preds = pd.read_csv("src/results/regression_predictions.csv")
+class_preds = pd.read_csv("src/results/combined_classification_predictions.csv")
 
 print("Loaded datasets")
 
@@ -64,10 +64,10 @@ plt.title("Energy Spectrum: All Test Events")
 plt.legend()
 plt.tight_layout()
 
-plt.savefig("graphs/energy_spectrum_all_events.png")
+plt.savefig("src/graphs/energy_spectrum_all_events.png")
 plt.close()
 
-print("Saved energy_spectrum_all_events.png")
+print("Saved src/graphs/energy_spectrum_all_events.png")
 
 # -----------------------
 # PSD cuts
@@ -118,9 +118,9 @@ plt.title("Energy Spectrum After PSD Cuts (True vs Predicted)")
 plt.legend()
 plt.tight_layout()
 
-plt.savefig("graphs/energy_spectrum_after_psd_cut.png")
+plt.savefig("src/graphs/energy_spectrum_after_psd_cut.png")
 plt.close()
 
-print("Saved energy_spectrum_after_psd_cut.png")
+print("Saved src/graphs/energy_spectrum_after_psd_cut.png")
 
 print("\nVisualization complete.")
