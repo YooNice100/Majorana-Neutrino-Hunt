@@ -52,3 +52,5 @@ regression/
 src/experiments/
 
 src/predictions/
+
+results/
