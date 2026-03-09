@@ -50,24 +50,28 @@ def main():
 
     print("\nBuilding combined datasets...\n")
 
+    train_path = "src/feature_inputs/train/"
+    test_path = "src/feature_inputs/test/"
+    data_path = "src/data/"
+
     # TRAIN DATASET
     process_and_merge_features(
-        labels_path="feature_inputs/labels_train.csv",
-        eunice_path="feature_inputs/eunice_train_all_features.csv.gz",
-        nomin_path="feature_inputs/nomin_combined_train_n.csv.gz",
-        prithvi_path="feature_inputs/prithvi_train_2.csv.gz",
-        jade_path="feature_inputs/jade_train_features.csv",
-        output_path="data/combined_train_with_labels.csv.gz"
+        labels_path=train_path + "labels_train.csv",
+        eunice_path=train_path + "eunice_train_all_features.csv.gz",
+        nomin_path=train_path + "nomin_combined_train_n.csv.gz",
+        prithvi_path=train_path + "prithvi_train_2.csv.gz",
+        jade_path=train_path + "jade_train_features.csv",
+        output_path=data_path + "combined_train_with_labels.csv.gz"
     )
 
     # TEST DATASET
     process_and_merge_features(
-        labels_path="feature_inputs/labels_test.csv",
-        eunice_path="feature_inputs/eunice_test_all_features.csv.gz",
-        nomin_path="feature_inputs/nomin_combined_test_n.csv.gz",
-        prithvi_path="feature_inputs/prithvi_test_2.csv.gz",
-        jade_path="feature_inputs/jade_test_features.csv",
-        output_path="data/combined_test_with_labels.csv.gz"
+        labels_path=test_path + "labels_test.csv",
+        eunice_path=test_path + "eunice_test_all_features.csv.gz",
+        nomin_path=test_path + "nomin_combined_test_n.csv.gz",
+        prithvi_path=test_path + "prithvi_test_2.csv.gz",
+        jade_path=test_path + "jade_test_features.csv",
+        output_path=data_path + "combined_test_with_labels.csv.gz"
     )
 
     print("\nDone building datasets.")

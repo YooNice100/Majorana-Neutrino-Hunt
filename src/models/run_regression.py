@@ -8,8 +8,8 @@ print("\nStarting regression pipeline...")
 
 # load dataset
 
-df_train = pd.read_csv("data/combined_train_with_labels.csv.gz")
-df_test = pd.read_csv("data/combined_test_with_labels.csv.gz")
+df_train = pd.read_csv("src/data/combined_train_with_labels.csv.gz")
+df_test = pd.read_csv("src/data/combined_test_with_labels.csv.gz")
 
 print("Train shape:", df_train.shape)
 print("Test shape:", df_test.shape)
@@ -18,7 +18,7 @@ print("Test shape:", df_test.shape)
 # Load classification predictions
 # ------------------------
 
-pred_df = pd.read_csv("results/combined_classification_predictions.csv")
+pred_df = pd.read_csv("src/results/combined_classification_predictions.csv")
 
 # ------------------------
 # Prepare features
@@ -99,7 +99,7 @@ predictions = pd.DataFrame({
     "pred_energy": y_pred_xgb
 })
 
-predictions.to_csv("results/regression_predictions.csv", index=False)
+predictions.to_csv("src/results/regression_predictions.csv", index=False)
 
 # ------------------------
 # Save metrics
@@ -113,6 +113,6 @@ metrics_df = pd.DataFrame([{
     "r2": r2
 }])
 
-metrics_df.to_csv("results/regression_metrics.csv", index=False)
+metrics_df.to_csv("src/results/regression_metrics.csv", index=False)
 
 print("\nRegression pipeline complete.")

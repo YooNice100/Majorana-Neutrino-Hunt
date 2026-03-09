@@ -14,8 +14,8 @@ print("\nStarting classification pipeline...")
 # load the data
 print("Loading datasets...")
 
-df_train = pd.read_csv("data/combined_train_with_labels.csv.gz")
-df_test = pd.read_csv("data/combined_test_with_labels.csv.gz")
+df_train = pd.read_csv("src/data/combined_train_with_labels.csv.gz")
+df_test = pd.read_csv("src/data/combined_test_with_labels.csv.gz")
 
 print("Train shape:", df_train.shape)
 print("Test shape:", df_test.shape)
@@ -168,7 +168,7 @@ pred_df = pd.DataFrame({
     "pred_lq": pred_lq
 })
 
-pred_df.to_csv("results/combined_classification_predictions.csv", index=False)
+pred_df.to_csv("src/results/combined_classification_predictions.csv", index=False)
 
 print("Prediction file saved.")
 
@@ -192,7 +192,7 @@ add_metrics("dcr", y_test_dcr, pred_dcr)
 add_metrics("lq", y_test_lq, pred_lq)
 
 metrics_df = pd.DataFrame(metrics)
-metrics_df.to_csv("results/classification_metrics.csv", index=False)
+metrics_df.to_csv("src/results/classification_metrics.csv", index=False)
 
 print("\nClassification metrics:")
 print(metrics_df)

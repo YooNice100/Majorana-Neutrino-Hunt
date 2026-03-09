@@ -17,10 +17,10 @@ print("\nStarting NPML pipeline...")
 # Load NPML feature files
 # -------------------------
 
-eunice = pd.read_csv("feature_inputs/eunice_combined_npml.csv.gz")
-nomin = pd.read_csv("feature_inputs/nomin_combined_npml_n.csv.gz")
-prithvi = pd.read_csv("feature_inputs/prithvi_combined_npml.csv.gz")
-jade = pd.read_csv("feature_inputs/jade_npml_features.csv")
+eunice = pd.read_csv("feature_inputs/npml/eunice_combined_npml.csv.gz")
+nomin = pd.read_csv("feature_inputs/npml/nomin_combined_npml_n.csv.gz")
+prithvi = pd.read_csv("feature_inputs/npml/prithvi_combined_npml.csv.gz")
+jade = pd.read_csv("feature_inputs/npml/jade_npml_features.csv")
 
 print("Feature shapes:")
 print(eunice.shape, nomin.shape, prithvi.shape, jade.shape)
@@ -39,7 +39,7 @@ print("Merged NPML shape:", df.shape)
 # Load training data
 # -------------------------
 
-train_df = pd.read_csv("data/combined_train_with_labels.csv.gz")
+train_df = pd.read_csv("src/data/combined_train_with_labels.csv.gz")
 
 classification_label_cols = [
     "psd_label_lq",
@@ -186,7 +186,7 @@ pred_df["SSE"] = (
     (pred_df["pred_dcr"]==1)
 ).astype(int)
 
-pred_df.to_csv("results/npml_predictions.csv", index=False)
+pred_df.to_csv("src/results/npml_predictions.csv", index=False)
 
-print("Saved results/npml_predictions.csv")
+print("Saved src/results/npml_predictions.csv")
 print("\nNPML pipeline complete.")
