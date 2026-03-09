@@ -1,40 +1,46 @@
-# Keep the data folder but ignore the big files inside
-data/*
-!data/.gitkeep
-
-# Ignore system files
+# ===============================
+# System / Python
+# ===============================
 .DS_Store
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
-# Ignore HDF5 files anywhere
+# ===============================
+# Data files (large)
+# ===============================
 *.hdf5
 *.h5
 
-# Ignore generated images
+# Keep data folder structure but ignore large files
+data/*
+!data/.gitkeep
+
+# ===============================
+# Generated outputs
+# ===============================
 graphs/*.png
 graphs/*.jpg
 
-# Ignore large compressed CSV outputs by default
-# *.csv.gz
+results/*.csv
 
-# Allow this specific test CSV to be tracked
-!extracted_features_csv_files/eunice_csv_files/test_csv/test_all_features.csv.gz
+# ===============================
+# Feature engineering outputs (large)
+# ===============================
+extracted_features_csv_files/
 
-# Still ignore combined CSV outputs
-extracted_features_csv_files/combined_csv_files/*.csv.gz
-extracted_features_csv_files/prithvi_csv_files/*.csv
-extracted_features_csv_files/prithvi_csv_files/compress_files.ipynb
-extracted_features_csv_files/jade_csv_files/*.csv
-extracted_features_csv_files/eunice_csv_files/train_csv/makegzip.ipynb
-src/experiments/extract_my_params.ipynb
-
-# Ignore following files
+# ===============================
+# Temporary notebooks / local work
+# ===============================
+Untitled*.ipynb
 project_code.py
-Untitled2.ipynb
-notebooks/
-classification/high_avse_plots/
+
+# ===============================
+# Model artifacts
+# ===============================
 regression/xgb_regressor_model.json
 
+# ===============================
+# Local personal folders
+# ===============================
 eunicenotebooks/
