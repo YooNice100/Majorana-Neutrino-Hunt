@@ -15,24 +15,17 @@ Our pipeline performs the following tasks:
 
 ---
 
-## Installation
+## Installation & Environment Setup
+
+To ensure complete reproducibility, this project is packaged using Docker. This guarantees that all dependencies (Python 3.11, pandas 2.2.3, scikit-learn 1.6.1, xgboost 3.1.2, lightgbm 4.6.0, etc.) are installed with their exact versions.
 
 **1. Clone the repository:**
 `git clone https://github.com/YooNice100/Majorana-Neutrino-Hunt.git`
 `cd Majorana-Neutrino-Hunt`
 
-**2. Install dependencies:**
-`pip install -r requirements.txt`
-
-### Environment
-This project was developed with Python 3.11 and the following core libraries:
-* `pandas==2.2.3`
-* `numpy==2.2.0`
-* `scikit-learn==1.6.1`
-* `scipy==1.15.1`
-* `xgboost==3.1.2`
-* `lightgbm==4.6.0`
-* `matplotlib==3.9.3`
+**2. Build the Docker Image:**
+Ensure you have Docker Desktop installed and running, then build the image:
+`docker build -t majorana-pipeline .`
 
 ---
 
@@ -42,7 +35,7 @@ The raw waveform datasets are too large to store in the repository. Instead, thi
 
 `src/feature_inputs/`
 
-These datasets are used to build the final training and testing datasets for the models.
+These datasets are used by the automated pipeline to build the final training and testing datasets for the models.
 
 ---
 
@@ -93,43 +86,20 @@ Majorana-Neutrino-Hunt/
 
 ---
 
-## Running the Pipeline
+## Running the Experiments
 
-You can run this project either using Docker for full automation or locally step-by-step.
+Our Docker container is configured to automatically run the entire pipeline sequentially. You only need to run one command to execute the data processing, model training, NPML predictions, and plot generation.
 
-### Method 1: Using Docker (Recommended)
-Our Docker container is configured to automatically run the entire pipeline from dataset creation to final plot generation.
-
-**1. Build the image:**
-`docker build -t majorana-pipeline .`
-
-**2. Run the pipeline:**
+**Execute the pipeline:**
 `docker run majorana-pipeline`
 
-### Method 2: Local Python Environment
-If you prefer to run the scripts individually, execute them from the root directory in the following order:
-
-**Step 1: Build the Combined Dataset**
-`python src/data/build_combined_dataset.py`
-
-**Step 2: Train Classification Models**
-`python src/models/run_classification.py`
-
-**Step 3: Train Regression Models**
-`python src/models/run_regression.py`
-
-**Step 4: Run NPML Prediction Pipeline**
-`python src/models/run_npml_pipeline.py`
-
-**Step 5: Generate Visualizations**
-`python src/visualization/generate_plots.py`
-`python src/visualization/generate_npml_plots.py`
+*(Note: The `Dockerfile` handles the sequential execution of `build_combined_dataset.py`, `run_classification.py`, `run_regression.py`, `run_npml_pipeline.py`, and the visualization scripts).*
 
 ---
 
 ## Expected Outputs
 
-After running the full pipeline, you should see the following files generated in their respective directories. If these files already exist, running the pipeline again will overwrite them with newly generated results.
+After the Docker container finishes running the pipeline, it will produce the following outputs in their respective directories:
 
 **Model Metrics & Predictions:**
 * `src/results/classification_metrics.csv`
@@ -139,7 +109,6 @@ After running the full pipeline, you should see the following files generated in
 * `src/graphs/energy_spectrum_all_events.png`
 * `src/graphs/energy_spectrum_after_psd_cut.png`
 * `src/graphs/npml_energy_spectrum.png`
-
 
 ---
 
