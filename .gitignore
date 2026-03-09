@@ -44,3 +44,8 @@ regression/xgb_regressor_model.json
 # Local personal folders
 # ===============================
 eunicenotebooks/
+
+classification/
+
+regression/
+
